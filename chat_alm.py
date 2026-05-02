@@ -330,11 +330,12 @@ def render_chat_tab(st, resultado: dict, api_key: str):
             st.markdown(resposta)
         st.session_state.chat_messages.append({"role": "assistant", "content": resposta})
 
+    # Input livre (deve ser chamado sempre para o campo aparecer na tela)
+    pergunta = st.chat_input("Digite sua pergunta sobre o ALM do fundo...")
+    if pergunta:
+        st.session_state.chat_messages.append({"role": "user", "content": pergunta})
+        # Não chamamos st.rerun() — chat_input já dispara rerun automaticamente
+
     if st.session_state.chat_messages:
         st.markdown("")
-        if st.button("Limpar conversa", use_container_width=False, key="alm_chat_btn_limpar_001"):
-            st.session_state.chat_messages      = []
-            st.session_state.diagnostico_gerado = False
-            st.session_state.diagnostico_texto  = ""
-            st.session_state.diagnostico_pendente = False
-            st.rerun()
+    

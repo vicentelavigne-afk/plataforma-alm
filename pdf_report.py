@@ -188,7 +188,7 @@ def gerar_pdf(info,params,metricas,df_ativos,df_passivo,df_exp,df_gaps,df_stress
     # PAG 3
     pdf.add_page();pdf._sec("EXPOSICAO POR INDEXADOR")
     pdf._body(f"IPCA: {pct_ipca:.1f}%. CDI/Selic: {pct_cdi:.1f}%. {'ATENCAO: abaixo do minimo de 50% recomendado para planos BD.' if pct_ipca<50 else 'Adequada ao perfil BD.'}")
-    pdf._img(ie,w=100,h=80);pdf._sec("GAPS DE LIQUIDEZ")
+    pdf._img(ie,w=100);pdf._sec("GAPS DE LIQUIDEZ")
     if anos:pdf._body(f"Anos com deficit: {', '.join(map(str,anos[:6]))}{'...' if len(anos)>6 else ''}. O fundo precisara usar o patrimônio acumulado para honrar beneficios.")
     else:pdf._body("Nenhum deficit de liquidez relevante no horizonte analisado.")
     pdf._img(ig,w=174,h=65)
@@ -222,4 +222,4 @@ def gerar_pdf(info,params,metricas,df_ativos,df_passivo,df_exp,df_gaps,df_stress
             " Este relatorio nao substitui a avaliacao do atuario responsavel.")
     pdf.multi_cell(0, 5, s(nota))
     pdf.set_text_color(0, 0, 0)
-    return bytes(pdf.output())
+    return bytes(pdf.output())     
