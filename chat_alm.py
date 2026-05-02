@@ -149,6 +149,30 @@ def gerar_diagnostico_proativo(api_key: str, contexto_alm: str,
     return chamar_openai(api_key, mensagens)
 
 
+MSG_FORA_ESCOPO = (
+    "Esta pergunta está fora do escopo do Assistente ALM. "
+    "Posso ajudar com perguntas sobre os dados, indicadores e análises deste fundo de pensão."
+)
+
+_ALM_KEYWORDS = [
+    "fundo", "pensão", "pensao", "ativo", "passivo", "duration", "gap", "alm",
+    "solvência", "solvencia", "cobertura", "deficit", "déficit", "ipca", "cdi",
+    "juros", "taxa", "atuarial", "reserva", "pmbc", "pmbac", "carteira",
+    "indexador", "stress", "cfm", "fluxo", "benefício", "beneficio",
+    "contribuição", "contribuicao", "plano", "efpc", "rpps", "previc",
+    "patrimônio", "patrimonio", "renda fixa", "ntn", "ltn", "debenture",
+    "risco", "rentabilidade", "retorno", "benchmark", "meta atuarial",
+    "vp ", " ic ", "indice", "índice", "spread", "inflação", "inflacao",
+    "rebalanceamento", "otimização", "otimizacao", "provisão", "provisao",
+    "relatorio", "relatório", "diagnostico", "diagnóstico",
+]
+
+def _pergunta_no_escopo(pergunta: str) -> bool:
+    """Retorna True se a pergunta contém ao menos uma palavra-chave do domínio ALM."""
+    p = pergunta.lower()
+    return any(kw in p for kw in _ALM_KEYWORDS)
+
+
 def chamar_openai(api_key: str, messages: list, model: str = "gpt-4o-mini") -> str:
     """Chama a API OpenAI e retorna a resposta."""
     try:
@@ -289,23 +313,22 @@ def render_chat_tab(st, resultado: dict, api_key: str):
     # Processar última mensagem do usuário (se ainda sem resposta)
     if (st.session_state.chat_messages and
             st.session_state.chat_messages[-1]["role"] == "user"):
+        ultima_pergunta = st.session_state.chat_messages[-1]["content"]
         with st.chat_message("assistant"):
-            with st.spinner("Analisando..."):
-                try:
-                    messages_api = [{"role": "system", "content": system_prompt}]
-                    for m in st.session_state.chat_messages:
-                        messages_api.append({"role": m["role"], "content": m["content"]})
-                    resposta = chamar_openai(api_key, messages_api)
-                except Exception as e:
-                    resposta = "Erro ao processar: " + str(e)[:100]
+            # Filtro Python: verifica se a pergunta e do dominio ALM antes de chamar a API
+            if not _pergunta_no_escopo(ultima_pergunta):
+                resposta = MSG_FORA_ESCOPO
+            else:
+                with st.spinner("Analisando..."):
+                    try:
+                        messages_api = [{"role": "system", "content": system_prompt}]
+                        for m in st.session_state.chat_messages:
+                            messages_api.append({"role": m["role"], "content": m["content"]})
+                        resposta = chamar_openai(api_key, messages_api)
+                    except Exception as e:
+                        resposta = "Erro ao processar: " + str(e)[:100]
             st.markdown(resposta)
         st.session_state.chat_messages.append({"role": "assistant", "content": resposta})
-
-    # Input livre
-    pergunta = st.chat_input("Digite sua pergunta sobre o ALM do fundo...")
-    if pergunta:
-        st.session_state.chat_messages.append({"role": "user", "content": pergunta})
-        # Nao chamamos st.rerun() — chat_input ja dispara rerun automaticamente
 
     if st.session_state.chat_messages:
         st.markdown("")

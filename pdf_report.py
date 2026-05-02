@@ -44,16 +44,29 @@ def _chart_gaps(df_gaps,anos_max=20):
     plt.tight_layout();buf=io.BytesIO();fig.savefig(buf,format="png",dpi=130,bbox_inches="tight");plt.close(fig);buf.seek(0);return buf.read()
 
 def _chart_indexadores(df_exp):
+    # Figura quadrada sem labels externos — garante círculo perfeito no PNG
     fig, ax = plt.subplots(figsize=(5, 5))
     fig.patch.set_facecolor("white"); ax.set_facecolor("white")
-    colors=["#3B8091","#2A9D90","#E76E50","#E8C468","#274754","#94A3B8"]
-    wedges,texts,autotexts=ax.pie(df_exp["percentual"],labels=df_exp["indexador"],
-        autopct="%1.1f%%",colors=colors[:len(df_exp)],startangle=90,pctdistance=0.75,
-        wedgeprops=dict(linewidth=1.5,edgecolor="white"),radius=0.85)
-    for t in texts: t.set_fontsize(8)
-    for a in autotexts: a.set_fontsize(7); a.set_color("white"); a.set_fontweight("bold")
+    colors = ["#3B8091","#2A9D90","#E76E50","#E8C468","#274754","#94A3B8"]
+    wedges, _, autotexts = ax.pie(
+        df_exp["percentual"],
+        labels=None,                          # sem rótulos externos
+        autopct="%1.1f%%",
+        colors=colors[:len(df_exp)],
+        startangle=90, pctdistance=0.72,
+        wedgeprops=dict(linewidth=1.5, edgecolor="white"),
+        radius=0.9
+    )
+    for a in autotexts:
+        a.set_fontsize(8); a.set_color("white"); a.set_fontweight("bold")
+    # Legenda centralizada abaixo do pie
+    ax.legend(wedges, df_exp["indexador"].tolist(),
+              loc="lower center", bbox_to_anchor=(0.5, -0.12),
+              ncol=3, fontsize=7, framealpha=0.9)
     ax.set_aspect("equal")
-    buf=io.BytesIO(); fig.savefig(buf, format="png", dpi=130, bbox_inches="tight"); plt.close(fig); buf.seek(0); return buf.read()
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", dpi=130, bbox_inches="tight")
+    plt.close(fig); buf.seek(0); return buf.read()
 
 def _chart_duration(dur_a,dur_p,lim):
     fig,ax=plt.subplots(figsize=(5,3.5));fig.patch.set_facecolor("white");ax.set_facecolor("white")

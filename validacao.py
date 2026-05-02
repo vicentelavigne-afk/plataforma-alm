@@ -410,25 +410,29 @@ def render_painel_status(st, val_xml, val_passivo, val_params, val_fluxo,
             label_txt = val.get('label', '—')
             resumo_txt = val.get('resumo', '—')
             with cols[i]:
+                # Truncar textos longos para manter caixas do mesmo tamanho
+                label_show  = (label_txt[:52]  + "…") if len(label_txt)  > 52 else label_txt
+                resumo_show = (resumo_txt[:60] + "…") if len(resumo_txt) > 60 else resumo_txt
                 st.markdown(f"""
                 <div style="border:1px solid {border_color};background:{bg};
                             border-radius:8px;padding:0.7rem;border-top:3px solid {cor};
-                            min-height:110px;display:flex;flex-direction:column;
+                            height:128px;overflow:hidden;display:flex;flex-direction:column;
                             justify-content:flex-start;box-sizing:border-box;">
-                    <div style="font-size:0.70rem;color:#71717A;font-weight:700;
-                                text-transform:uppercase;letter-spacing:0.05em;
-                                margin-bottom:0.35rem;line-height:1.2;">
+                    <div style="font-size:0.69rem;color:#71717A;font-weight:700;
+                                text-transform:uppercase;letter-spacing:0.04em;
+                                margin-bottom:0.3rem;line-height:1.2;white-space:nowrap;
+                                overflow:hidden;text-overflow:ellipsis;">
                         {nome}
                     </div>
-                    <div style="font-size:0.95rem;margin-bottom:0.25rem;line-height:1.3;">{icon}
-                        <span style="font-size:0.78rem;font-weight:700;color:{cor};">
+                    <div style="font-size:0.92rem;margin-bottom:0.2rem;line-height:1.3;">{icon}
+                        <span style="font-size:0.77rem;font-weight:700;color:{cor};">
                             {val['status'].upper().replace('_',' ')}
                         </span>
                     </div>
-                    <div style="font-size:0.76rem;color:#334155;line-height:1.35;
-                                flex-grow:1;word-break:break-word;">{label_txt}</div>
-                    <div style="font-size:0.70rem;color:#71717A;margin-top:0.25rem;
-                                line-height:1.3;">{resumo_txt}</div>
+                    <div style="font-size:0.75rem;color:#334155;line-height:1.3;
+                                overflow:hidden;">{label_show}</div>
+                    <div style="font-size:0.69rem;color:#71717A;margin-top:0.2rem;
+                                line-height:1.3;overflow:hidden;">{resumo_show}</div>
                 </div>
                 """, unsafe_allow_html=True)
 
