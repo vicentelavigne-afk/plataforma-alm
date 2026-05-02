@@ -1188,4 +1188,4 @@ with tab9:
             st.rerun()
 
 
-st.markdown('<div class="footer
+st.markdown('<div class="footer">Plataforma ALM Inteligente - Investtools 2026 - Confidencial</div>', unsafe_allow_html=True)
