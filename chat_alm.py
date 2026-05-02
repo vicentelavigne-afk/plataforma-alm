@@ -256,26 +256,9 @@ def render_chat_tab(st, resultado: dict, api_key: str):
     # ── Chat Livre ────────────────────────────────────────────────────────────
     st.markdown("#### Perguntas sobre o Fundo")
 
-    def _responder(pergunta_texto):
-        """Processa pergunta e exibe resposta sem st.rerun() — mantém aba ativa."""
-        st.session_state.chat_messages.append({"role": "user", "content": pergunta_texto})
-        with st.chat_message("user"):
-            st.markdown(pergunta_texto)
-        with st.chat_message("assistant"):
-            with st.spinner("Analisando..."):
-                try:
-                    messages_api = [{"role": "system", "content": system_prompt}]
-                    for m in st.session_state.chat_messages:
-                        messages_api.append({"role": m["role"], "content": m["content"]})
-                    resposta = chamar_openai(api_key, messages_api)
-                except Exception as e:
-                    resposta = "Erro ao processar: " + str(e)[:100]
-            st.markdown(resposta)
-        st.session_state.chat_messages.append({"role": "assistant", "content": resposta})
-
-    # Sugestoes de perguntas (só aparecem se histórico vazio)
+    # Sugestões (só quando não há histórico)
     if not st.session_state.chat_messages:
-        st.markdown("**Sugestoes de perguntas:**")
+        st.markdown("**Sugestões de perguntas:**")
         sugestoes = [
             "Qual é o maior risco deste fundo hoje?",
             "O que significa o índice de cobertura calculado?",
@@ -289,12 +272,40 @@ def render_chat_tab(st, resultado: dict, api_key: str):
         cols_sug = st.columns(2)
         for i, s in enumerate(sugestoes):
             if cols_sug[i % 2].button(s, key=f"alm_sug_chat_{i}_001", use_container_width=True):
-                _responder(s)
+                st.session_state.chat_messages.append({"role": "user", "content": s})
                 st.rerun()
-    else:
-        # Exibir histórico completo
-        for msg in st.session_state.chat_messages:
-            with st.chat_message(msg["role"]):
-                st.markdown(msg["content"])
 
-  
+    # Exibir histórico
+    for msg in st.session_state.chat_messages:
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
+
+    # Processar última mensagem do usuário (se ainda sem resposta)
+    if (st.session_state.chat_messages and
+            st.session_state.chat_messages[-1]["role"] == "user"):
+        with st.chat_message("assistant"):
+            with st.spinner("Analisando..."):
+                try:
+                    messages_api = [{"role": "system", "content": system_prompt}]
+                    for m in st.session_state.chat_messages:
+                        messages_api.append({"role": m["role"], "content": m["content"]})
+                    resposta = chamar_openai(api_key, messages_api)
+                except Exception as e:
+                    resposta = "Erro ao processar: " + str(e)[:100]
+            st.markdown(resposta)
+        st.session_state.chat_messages.append({"role": "assistant", "content": resposta})
+
+    # Input livre
+    pergunta = st.chat_input("Digite sua pergunta sobre o ALM do fundo...")
+    if pergunta:
+        st.session_state.chat_messages.append({"role": "user", "content": pergunta})
+        st.rerun()
+
+    if st.session_state.chat_messages:
+        st.markdown("")
+        if st.button("Limpar conversa", use_container_width=False, key="alm_chat_btn_limpar_001"):
+            st.session_state.chat_messages      = []
+            st.session_state.diagnostico_gerado = False
+            st.session_state.diagnostico_texto  = ""
+            st.session_state.diagnostico_pendente = False
+            st.rerun()

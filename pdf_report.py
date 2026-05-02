@@ -98,8 +98,11 @@ class RelatorioALM(FPDF):
         self.set_draw_color(*rgb(TEAL));self.set_line_width(0.5);self.line(18,92,192,92)
         self.set_font("Helvetica","B",20);self.set_text_color(*rgb(WHITE));self.set_xy(18,100)
         nm=s(self.info_fundo.get("nm_fundo","Fundo de Pensao"))
-        self.multi_cell(174,11,f"RELATORIO DIAGNOSTICO DE ALM\n{nm}",ln=True)
-        self.set_font("Helvetica","",11);y=max(self.get_y()+8,155)
+        self.multi_cell(174,11,"RELATORIO DIAGNOSTICO DE ALM")
+        self.set_xy(18,self.get_y()+2)
+        self.set_font("Helvetica","B",16)
+        self.multi_cell(174,10,nm[:60])
+        self.set_font("Helvetica","",11);y=min(max(self.get_y()+8,155),220)
         for label,val in [("Plano",self.params.get("nome_plano","Plano BD")),
                           ("Data-Base",self.info_fundo.get("data_base","")),
                           ("Administrador",self.info_fundo.get("nm_admin","")),
@@ -198,9 +201,10 @@ def gerar_pdf(info,params,metricas,df_ativos,df_passivo,df_exp,df_gaps,df_stress
             and not l.startswith("---") and l.strip()!="---"]
     pdf._body("\n".join(linhas[:20]),sz=9)
     pdf.ln(3)
-    pdf.set_font("Helvetica","I",8);pdf.set_text_color(*rgb(GRAY))
     nota = ("Relatorio gerado em " + date.today().strftime("%d/%m/%Y") +
-            " pela Plataforma ALM Inteligente - Investtools." 
-            " A memoria de calculo completa esta disponivel no arquivo Excel exportado pelo sistema."
+            " pela Plataforma ALM Inteligente - Investtools."
+            " A memoria de calculo completa esta disponivel no Excel exportado pelo sistema."
             " Este relatorio nao substitui a avaliacao do atuario responsavel.")
-    pdf.multi_cell(0,5,s(nota))
+    pdf.multi_cell(0, 5, s(nota))
+    pdf.set_text_color(0, 0, 0)
+    return bytes(pdf.output())
