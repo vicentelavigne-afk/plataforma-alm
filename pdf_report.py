@@ -44,15 +44,17 @@ def _chart_gaps(df_gaps,anos_max=20):
     plt.tight_layout();buf=io.BytesIO();fig.savefig(buf,format="png",dpi=130,bbox_inches="tight");plt.close(fig);buf.seek(0);return buf.read()
 
 def _chart_indexadores(df_exp):
-    fig,ax=plt.subplots(figsize=(5,5),subplot_kw={"aspect":"equal"})
-    fig.patch.set_facecolor("white");ax.set_facecolor("white")
+    fig = plt.figure(figsize=(5,5))
+    ax  = fig.add_subplot(111, aspect="equal")
+    fig.patch.set_facecolor("white"); ax.set_facecolor("white")
     colors=["#3B8091","#2A9D90","#E76E50","#E8C468","#274754","#94A3B8"]
     wedges,texts,autotexts=ax.pie(df_exp["percentual"],labels=df_exp["indexador"],
         autopct="%1.1f%%",colors=colors[:len(df_exp)],startangle=90,pctdistance=0.75,
-        wedgeprops=dict(linewidth=1.5,edgecolor="white"),radius=1.0)
-    for t in texts:t.set_fontsize(9)
-    for a in autotexts:a.set_fontsize(8);a.set_color("white");a.set_fontweight("bold")
-    buf=io.BytesIO();fig.savefig(buf,format="png",dpi=130,bbox_inches="tight",pad_inches=0.05);plt.close(fig);buf.seek(0);return buf.read()
+        wedgeprops=dict(linewidth=1.5,edgecolor="white"),radius=0.85)
+    for t in texts: t.set_fontsize(8)
+    for a in autotexts: a.set_fontsize(7); a.set_color("white"); a.set_fontweight("bold")
+    ax.set_aspect("equal")  # garante círculo perfeito ao salvar
+    buf=io.BytesIO(); fig.savefig(buf,format="png",dpi=130); plt.close(fig); buf.seek(0); return buf.read()
 
 def _chart_duration(dur_a,dur_p,lim):
     fig,ax=plt.subplots(figsize=(5,3.5));fig.patch.set_facecolor("white");ax.set_facecolor("white")
@@ -79,6 +81,7 @@ class RelatorioALM(FPDF):
         self.set_xy(-80,2);self.cell(62,6,s(self.info_fundo.get("nm_fundo",""))[:35],align="R")
         self.set_text_color(0,0,0);self.set_xy(18,22)
     def footer(self):
+        if self.page_no()==1:return  # Capa tem seu próprio rodapé
         self.set_y(-12);self.set_fill_color(*rgb(LIGHT));self.rect(0,self.get_y(),210,12,"F")
         self.set_font("Helvetica","",7);self.set_text_color(*rgb(GRAY))
         self.cell(0,6,s(f"Investtools (c) 2026  |  Confidencial  |  Gerado em {date.today().strftime('%d/%m/%Y')}  |  Este relatorio nao substitui a avaliacao do atuario responsavel"),align="C")
@@ -206,5 +209,4 @@ def gerar_pdf(info,params,metricas,df_ativos,df_passivo,df_exp,df_gaps,df_stress
             " A memoria de calculo completa esta disponivel no Excel exportado pelo sistema."
             " Este relatorio nao substitui a avaliacao do atuario responsavel.")
     pdf.multi_cell(0, 5, s(nota))
-    pdf.set_text_color(0, 0, 0)
-    return bytes(pdf.output())
+    pdf.s

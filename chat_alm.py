@@ -273,7 +273,7 @@ def render_chat_tab(st, resultado: dict, api_key: str):
         for i, s in enumerate(sugestoes):
             if cols_sug[i % 2].button(s, key=f"alm_sug_chat_{i}_001", use_container_width=True):
                 st.session_state.chat_messages.append({"role": "user", "content": s})
-                st.rerun()
+                # Não chamamos st.rerun() aqui — o Streamlit já reexecuta ao clicar no botão
 
     # Exibir histórico
     for msg in st.session_state.chat_messages:
@@ -299,7 +299,7 @@ def render_chat_tab(st, resultado: dict, api_key: str):
     pergunta = st.chat_input("Digite sua pergunta sobre o ALM do fundo...")
     if pergunta:
         st.session_state.chat_messages.append({"role": "user", "content": pergunta})
-        st.rerun()
+        # Não chamamos st.rerun() — chat_input já dispara rerun automaticamente
 
     if st.session_state.chat_messages:
         st.markdown("")
