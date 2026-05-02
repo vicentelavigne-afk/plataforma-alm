@@ -1186,7 +1186,5 @@ with tab9:
             st.success("Removida #" + str(int(id_del)))
             st.rerun()
 
-with tab8:
-    render_chat_tab(st, st.session_state.resultado, st.session_state.get("openai_key",""))
 
 st.markdown('<div class="footer">Plataforma ALM Inteligente - Investtools 2026 - Confidencial</div>', unsafe_allow_html=True)
