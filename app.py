@@ -620,14 +620,19 @@ with tab1:
             y=[dur_passivo], marker_color=IVT_NAVY))
         fig_dur.add_hline(y=dur_passivo + lim_dur, line_dash="dash", line_color=IVT_RED)
         fig_dur.add_hline(y=max(dur_passivo - lim_dur, 0), line_dash="dash", line_color=IVT_RED)
-        fig_dur.add_annotation(x=0.98, y=dur_passivo + lim_dur, xref="paper", yref="y",
-            text=f"+{lim_dur}a", showarrow=False, xanchor="right", yanchor="bottom",
-            font=dict(size=10, color=IVT_RED), bgcolor="white", borderpad=2)
-        fig_dur.add_annotation(x=0.98, y=max(dur_passivo - lim_dur, 0.1), xref="paper", yref="y",
-            text=f"-{lim_dur}a", showarrow=False, xanchor="right", yanchor="top",
-            font=dict(size=10, color=IVT_RED), bgcolor="white", borderpad=2)
+        # Anotações fora da área do gráfico, à direita das linhas pontilhadas
+        fig_dur.add_annotation(
+            x=1.02, y=dur_passivo + lim_dur, xref="paper", yref="y",
+            text=f"+{lim_dur}a", showarrow=False,
+            xanchor="left", yanchor="middle",
+            font=dict(size=10, color=IVT_RED, family="Lato"))
+        fig_dur.add_annotation(
+            x=1.02, y=max(dur_passivo - lim_dur, 0.1), xref="paper", yref="y",
+            text=f"-{lim_dur}a", showarrow=False,
+            xanchor="left", yanchor="middle",
+            font=dict(size=10, color=IVT_RED, family="Lato"))
         plotly_layout(fig_dur, "Duration: Ativos vs Passivo", 320)
-        fig_dur.update_layout(barmode="group")
+        fig_dur.update_layout(barmode="group", margin=dict(l=20, r=55, t=40, b=20))
         st.plotly_chart(fig_dur, use_container_width=True)
 
     st.markdown("#### 📋 Carteira de Ativos")
@@ -1168,4 +1173,18 @@ with tab9:
                 df_c["vp_passivo"] = df_c["vp_passivo"].apply(lambda x: "R$ "+str(round(x/1e6,0))+"M")
                 df_c["ic"] = df_c["ic"].apply(lambda x: str(round(x*100,1))+"%")
                 df_c["gap_duration"] = df_c["gap_duration"].apply(lambda x: str(round(x,2))+"a")
+                df_c["cfm_score"] = df_c["cfm_score"].apply(lambda x: str(round(x,1))+"%" if x else "-")
+                df_c.columns = ["#","Data/Hora","Data-base","Taxa","PL","VP Passivo","IC","Dur.A","Dur.P","Gap","IPCA","CFM"]
+                st.dataframe(df_c.set_index("#"), use_container_width=True)
+
+        st.markdown("---")
+        id_del = st.number_input("ID para excluir", min_value=1, step=1, key="id_del")
+        if st.button("Excluir simulacao", key="btn_del"):
+            excluir_simulacao(int(id_del))
+            st.success("Removida #" + str(int(id_del)))
+            st.rerun()
+
+with tab8:
+    render_chat_tab(st, st.session_state.resultado, st.session_state.get("openai_key",""))
+
 st.markdown('<div class="footer">Plataforma ALM Inteligente - Investtools 2026 - Confidencial</div>', unsafe_allow_html=True)
