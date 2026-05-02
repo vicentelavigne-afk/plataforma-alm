@@ -226,7 +226,7 @@ def render_chat_tab(st, resultado: dict, api_key: str):
 
     col_diag, col_btn = st.columns([4, 1])
     with col_btn:
-        if st.button("Gerar Diagnostico", use_container_width=True, key="btn_gerar_diag"):
+        if st.button("Gerar Diagnostico", use_container_width=True, key="alm_chat_btn_gerar_diag_001"):
             st.session_state.diagnostico_gerado = False
             st.session_state.diagnostico_texto  = ""
 
@@ -262,7 +262,7 @@ def render_chat_tab(st, resultado: dict, api_key: str):
         ]
         cols_sug = st.columns(2)
         for i, s in enumerate(sugestoes):
-            if cols_sug[i % 2].button(s, key=f"sug_chat_{i}", use_container_width=True):
+            if cols_sug[i % 2].button(s, key=f"alm_sug_chat_{i}_001", use_container_width=True):
                 st.session_state.chat_messages.append({"role": "user", "content": s})
                 st.rerun()
 
@@ -292,8 +292,7 @@ def render_chat_tab(st, resultado: dict, api_key: str):
         st.rerun()
 
     if st.session_state.chat_messages:
-        if st.button("Limpar conversa", use_container_width=False, key="btn_limpar_chat"):
+        if st.button("Limpar conversa", use_container_width=False, key="alm_chat_btn_limpar_001"):
             st.session_state.chat_messages  = []
             st.session_state.diagnostico_gerado = False
-            st.session_state.diagnostico_texto  = ""
-            st.rerun()
+            st.session_state.diagnostico_texto 
