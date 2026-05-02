@@ -509,4 +509,13 @@ def render_painel_status(st, val_xml, val_passivo, val_params, val_fluxo,
                                 border-left:3px solid {cor_f};">
                         <span style="font-size:0.85rem;">{icon_f}</span>
                         <span style="font-size:0.85rem;font-weight:600;color:#1E3A5F;
-                                     marg
+                                     margin-left:0.3rem;">{func["nome"]}</span>
+                        {motivo_html}
+                    </div>""", unsafe_allow_html=True)
+
+        # Legenda
+        st.markdown("""
+        <div style="margin-top:0.8rem;font-size:0.75rem;color:#71717A;">
+            ✅ Disponível &nbsp;·&nbsp; ⚡ Atendido com estimativa &nbsp;·&nbsp;
+            ⚠️ Parcialmente disponível &nbsp;·&nbsp; ❌ Indisponível
+        </div>""", unsafe_allow_html=True)

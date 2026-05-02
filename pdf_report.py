@@ -210,4 +210,3 @@ def gerar_pdf(info,params,metricas,df_ativos,df_passivo,df_exp,df_gaps,df_stress
     pdf.multi_cell(0, 5, s(nota))
     pdf.set_text_color(0, 0, 0)
     return bytes(pdf.output())
-  
