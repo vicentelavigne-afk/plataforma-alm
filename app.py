@@ -1070,7 +1070,8 @@ with tab7:
             st.download_button("⬇ Baixar PDF", data=pdf_bytes,
                 file_name=f"relatorio_alm_{info.get('data_base','')}.pdf",
                 mime="application/pdf", use_container_width=True)
-        except Exception:
+        except Exception as _pdf_err:
+            st.warning(f"PDF indisponível ({_pdf_err}). Baixando versão texto.")
             st.download_button("⬇ Baixar .txt", data=relatorio.encode("utf-8"),
                 file_name=f"relatorio_alm_{info.get('data_base','')}.txt",
                 mime="text/plain")
@@ -1187,4 +1188,4 @@ with tab9:
             st.rerun()
 
 
-st.markdown('<div class="footer">Plataforma ALM Inteligente - Investtools 2026 - Confidencial</div>', unsafe_allow_html=True)
+st.markdown('<div class="footer

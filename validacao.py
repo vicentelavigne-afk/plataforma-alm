@@ -407,21 +407,28 @@ def render_painel_status(st, val_xml, val_passivo, val_params, val_fluxo,
         for i, (nome, val) in enumerate(arquivos):
             icon, cor, bg, border_color = STATUS_CONFIG.get(
                 val["status"], ("❓", "#888888", "#F4F4F5", "#CCCCCC"))
+            label_txt = val.get('label', '—')
+            resumo_txt = val.get('resumo', '—')
             with cols[i]:
                 st.markdown(f"""
                 <div style="border:1px solid {border_color};background:{bg};
-                            border-radius:8px;padding:0.7rem;border-top:3px solid {cor};">
-                    <div style="font-size:0.72rem;color:#71717A;font-weight:700;
-                                text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.3rem;">
+                            border-radius:8px;padding:0.7rem;border-top:3px solid {cor};
+                            min-height:110px;display:flex;flex-direction:column;
+                            justify-content:flex-start;box-sizing:border-box;">
+                    <div style="font-size:0.70rem;color:#71717A;font-weight:700;
+                                text-transform:uppercase;letter-spacing:0.05em;
+                                margin-bottom:0.35rem;line-height:1.2;">
                         {nome}
                     </div>
-                    <div style="font-size:1.1rem;margin-bottom:0.2rem;">{icon}
-                        <span style="font-size:0.8rem;font-weight:700;color:{cor};">
+                    <div style="font-size:0.95rem;margin-bottom:0.25rem;line-height:1.3;">{icon}
+                        <span style="font-size:0.78rem;font-weight:700;color:{cor};">
                             {val['status'].upper().replace('_',' ')}
                         </span>
                     </div>
-                    <div style="font-size:0.78rem;color:#334155;">{val['label']}</div>
-                    <div style="font-size:0.72rem;color:#71717A;margin-top:0.2rem;">{val['resumo']}</div>
+                    <div style="font-size:0.76rem;color:#334155;line-height:1.35;
+                                flex-grow:1;word-break:break-word;">{label_txt}</div>
+                    <div style="font-size:0.70rem;color:#71717A;margin-top:0.25rem;
+                                line-height:1.3;">{resumo_txt}</div>
                 </div>
                 """, unsafe_allow_html=True)
 
@@ -502,13 +509,4 @@ def render_painel_status(st, val_xml, val_passivo, val_params, val_fluxo,
                                 border-left:3px solid {cor_f};">
                         <span style="font-size:0.85rem;">{icon_f}</span>
                         <span style="font-size:0.85rem;font-weight:600;color:#1E3A5F;
-                                     margin-left:0.3rem;">{func['nome']}</span>
-                        {motivo_html}
-                    </div>""", unsafe_allow_html=True)
-
-        # Legenda
-        st.markdown("""
-        <div style="margin-top:0.8rem;font-size:0.75rem;color:#71717A;">
-            ✅ Disponível &nbsp;·&nbsp; ⚡ Atendido com estimativa &nbsp;·&nbsp;
-            ⚠️ Parcialmente disponível &nbsp;·&nbsp; ❌ Indisponível
-        </div>""", unsafe_allow_html=True)
+                                     marg

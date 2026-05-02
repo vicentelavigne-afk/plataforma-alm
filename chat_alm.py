@@ -109,7 +109,13 @@ def montar_system_prompt(contexto_alm: str) -> str:
         "2. Se o dado nao estiver disponivel, diga isso claramente.\n"
         "3. Responda em portugues brasileiro, de forma clara e direta.\n"
         "4. Use linguagem adequada para um diretor/gestor de fundo de pensao.\n"
-        "5. Quando mencionar valores, use o formato brasileiro (R$ X milhoes).\n\n"
+        "5. Quando mencionar valores, use o formato brasileiro (R$ X milhoes).\n"
+        "6. ESCOPO RESTRITO: Se a pergunta nao for sobre este fundo de pensao, sobre ALM, "
+        "sobre gestao de ativos e passivos, sobre indicadores atuariais ou sobre o contexto "
+        "de fundos de pensao brasileiros, responda EXATAMENTE: "
+        "'Esta pergunta esta fora do escopo do Assistente ALM. "
+        "Posso ajudar com perguntas sobre os dados, indicadores e analises deste fundo de pensao.' "
+        "Nunca responda perguntas sobre outros assuntos, mesmo que parecam relacionados.\n\n"
         f"{contexto_alm}\n\n"
         "Voce esta pronto para responder perguntas sobre este fundo com base nesses dados reais."
     )
@@ -298,14 +304,4 @@ def render_chat_tab(st, resultado: dict, api_key: str):
     # Input livre
     pergunta = st.chat_input("Digite sua pergunta sobre o ALM do fundo...")
     if pergunta:
-        st.session_state.chat_messages.append({"role": "user", "content": pergunta})
-        # Não chamamos st.rerun() — chat_input já dispara rerun automaticamente
-
-    if st.session_state.chat_messages:
-        st.markdown("")
-        if st.button("Limpar conversa", use_container_width=False, key="alm_chat_btn_limpar_001"):
-            st.session_state.chat_messages      = []
-            st.session_state.diagnostico_gerado = False
-            st.session_state.diagnostico_texto  = ""
-            st.session_state.diagnostico_pendente = False
-            st.rerun()
+        st.session_state.chat_messages.append({"role": "user", "co
