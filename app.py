@@ -620,19 +620,21 @@ with tab1:
             y=[dur_passivo], marker_color=IVT_NAVY))
         fig_dur.add_hline(y=dur_passivo + lim_dur, line_dash="dash", line_color=IVT_RED)
         fig_dur.add_hline(y=max(dur_passivo - lim_dur, 0), line_dash="dash", line_color=IVT_RED)
-        # Anotações fora da área do gráfico, à direita das linhas pontilhadas
+        # Labels no lado esquerdo do gráfico (área vazia, sem barras)
         fig_dur.add_annotation(
-            x=1.02, y=dur_passivo + lim_dur, xref="paper", yref="y",
-            text=f"+{lim_dur}a", showarrow=False,
-            xanchor="left", yanchor="middle",
-            font=dict(size=10, color=IVT_RED, family="Lato"))
+            x=0.01, y=dur_passivo + lim_dur, xref="paper", yref="y",
+            text=f"limite +{lim_dur}a",
+            showarrow=False, xanchor="left", yanchor="bottom",
+            font=dict(size=9, color=IVT_RED, family="Lato"),
+            bgcolor="rgba(255,255,255,0.85)", borderpad=2)
         fig_dur.add_annotation(
-            x=1.02, y=max(dur_passivo - lim_dur, 0.1), xref="paper", yref="y",
-            text=f"-{lim_dur}a", showarrow=False,
-            xanchor="left", yanchor="middle",
-            font=dict(size=10, color=IVT_RED, family="Lato"))
+            x=0.01, y=max(dur_passivo - lim_dur, 0.3), xref="paper", yref="y",
+            text=f"limite -{lim_dur}a",
+            showarrow=False, xanchor="left", yanchor="top",
+            font=dict(size=9, color=IVT_RED, family="Lato"),
+            bgcolor="rgba(255,255,255,0.85)", borderpad=2)
         plotly_layout(fig_dur, "Duration: Ativos vs Passivo", 320)
-        fig_dur.update_layout(barmode="group", margin=dict(l=20, r=55, t=40, b=20))
+        fig_dur.update_layout(barmode="group", margin=dict(l=20, r=20, t=40, b=20))
         st.plotly_chart(fig_dur, use_container_width=True)
 
     st.markdown("#### 📋 Carteira de Ativos")
@@ -1187,4 +1189,4 @@ with tab9:
 with tab8:
     render_chat_tab(st, st.session_state.resultado, st.session_state.get("openai_key",""))
 
-st.markdown('<div class="footer">Plataforma ALM Inteligente - Investtools 2026 - Confidencial</div>', unsafe_allow_html=True)
+st.markdow
