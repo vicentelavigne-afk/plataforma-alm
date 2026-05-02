@@ -222,26 +222,34 @@ def render_chat_tab(st, resultado: dict, api_key: str):
     """, unsafe_allow_html=True)
 
     # ── Diagnóstico Proativo ──────────────────────────────────────────────────
-    st.markdown("#### Diagnostico Automatico")
+    st.markdown("#### Diagnóstico Automático")
 
+    # Botão sempre visível — comportamento igual à primeira vez
     col_diag, col_btn = st.columns([4, 1])
     with col_btn:
-        if st.button("Gerar Diagnostico", use_container_width=True, key="alm_chat_btn_gerar_diag_001"):
-            st.session_state.diagnostico_gerado = False
-            st.session_state.diagnostico_texto  = ""
+        if st.button("Gerar Diagnóstico", use_container_width=True, key="alm_chat_btn_gerar_diag_001"):
+            st.session_state.diagnostico_gerado    = False
+            st.session_state.diagnostico_texto     = ""
+            st.session_state.diagnostico_pendente  = True
 
-    if not st.session_state.diagnostico_gerado:
+    # Só gera quando usuário clicou explicitamente (não ao entrar na aba)
+    if st.session_state.get("diagnostico_pendente", False):
         with st.spinner("Analisando os dados do fundo..."):
             try:
                 diag = gerar_diagnostico_proativo(api_key, contexto, metricas, params)
             except Exception as e:
-                diag = f"Erro ao gerar diagnostico: {str(e)[:200]}"
-        st.session_state.diagnostico_texto  = diag
-        st.session_state.diagnostico_gerado = True
+                diag = "Erro ao gerar diagnóstico: " + str(e)[:200]
+        st.session_state.diagnostico_texto     = diag
+        st.session_state.diagnostico_gerado    = True
+        st.session_state.diagnostico_pendente  = False
 
-    if st.session_state.diagnostico_texto:
+    # Exibir diagnóstico se disponível
+    if st.session_state.get("diagnostico_texto"):
         with col_diag:
             st.markdown(st.session_state.diagnostico_texto)
+    elif not st.session_state.get("diagnostico_pendente", False):
+        with col_diag:
+            st.info("Clique em **Gerar Diagnóstico** para analisar os dados do fundo automaticamente.")
 
     st.markdown("---")
 
@@ -269,14 +277,14 @@ def render_chat_tab(st, resultado: dict, api_key: str):
     if not st.session_state.chat_messages:
         st.markdown("**Sugestoes de perguntas:**")
         sugestoes = [
-            "Qual e o maior risco deste fundo hoje?",
-            "O que significa o indice de cobertura calculado?",
+            "Qual é o maior risco deste fundo hoje?",
+            "O que significa o índice de cobertura calculado?",
             "Como melhorar o score de Cash Flow Matching?",
             "O que acontece se os juros subirem 2%?",
-            "A exposicao ao IPCA esta adequada para o plano BD?",
+            "A exposição ao IPCA está adequada para o plano BD?",
             "Quais ativos aumentar para reduzir o gap de duration?",
-            "Como interpretar as reservas matematicas calculadas?",
-            "Em quais anos o fundo tera deficit de caixa?",
+            "Como interpretar as reservas matemáticas calculadas?",
+            "Em quais anos o fundo terá déficit de caixa?",
         ]
         cols_sug = st.columns(2)
         for i, s in enumerate(sugestoes):
@@ -289,15 +297,4 @@ def render_chat_tab(st, resultado: dict, api_key: str):
             with st.chat_message(msg["role"]):
                 st.markdown(msg["content"])
 
-    # Input de nova pergunta — processa sem rerun para não perder aba
-    pergunta = st.chat_input("Digite sua pergunta sobre o ALM do fundo...")
-    if pergunta:
-        _responder(pergunta)
-
-    # Botão limpar
-    if st.session_state.chat_messages:
-        if st.button("Limpar conversa", use_container_width=False, key="alm_chat_btn_limpar_001"):
-            st.session_state.chat_messages      = []
-            st.session_state.diagnostico_gerado = False
-            st.session_state.diagnostico_texto  = ""
-            st.rerun()
+  

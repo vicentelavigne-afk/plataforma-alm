@@ -44,15 +44,15 @@ def _chart_gaps(df_gaps,anos_max=20):
     plt.tight_layout();buf=io.BytesIO();fig.savefig(buf,format="png",dpi=130,bbox_inches="tight");plt.close(fig);buf.seek(0);return buf.read()
 
 def _chart_indexadores(df_exp):
-    fig,ax=plt.subplots(figsize=(5,5));fig.patch.set_facecolor("white")
+    fig,ax=plt.subplots(figsize=(5,5),subplot_kw={"aspect":"equal"})
+    fig.patch.set_facecolor("white");ax.set_facecolor("white")
     colors=["#3B8091","#2A9D90","#E76E50","#E8C468","#274754","#94A3B8"]
     wedges,texts,autotexts=ax.pie(df_exp["percentual"],labels=df_exp["indexador"],
         autopct="%1.1f%%",colors=colors[:len(df_exp)],startangle=90,pctdistance=0.75,
-        wedgeprops=dict(linewidth=1.5,edgecolor="white"))
+        wedgeprops=dict(linewidth=1.5,edgecolor="white"),radius=1.0)
     for t in texts:t.set_fontsize(9)
     for a in autotexts:a.set_fontsize(8);a.set_color("white");a.set_fontweight("bold")
-    ax.set_aspect("equal")
-    plt.tight_layout();buf=io.BytesIO();fig.savefig(buf,format="png",dpi=130,bbox_inches="tight");plt.close(fig);buf.seek(0);return buf.read()
+    buf=io.BytesIO();fig.savefig(buf,format="png",dpi=130,bbox_inches="tight",pad_inches=0.05);plt.close(fig);buf.seek(0);return buf.read()
 
 def _chart_duration(dur_a,dur_p,lim):
     fig,ax=plt.subplots(figsize=(5,3.5));fig.patch.set_facecolor("white");ax.set_facecolor("white")
@@ -96,10 +96,10 @@ class RelatorioALM(FPDF):
         self.set_font("Helvetica","",13);self.set_text_color(*rgb(TEAL));self.set_xy(18,78)
         self.cell(0,8,"PLATAFORMA DE ALM INTELIGENTE PARA FUNDOS DE PENSAO",ln=True)
         self.set_draw_color(*rgb(TEAL));self.set_line_width(0.5);self.line(18,92,192,92)
-        self.set_font("Helvetica","B",22);self.set_text_color(*rgb(WHITE));self.set_xy(18,100)
+        self.set_font("Helvetica","B",20);self.set_text_color(*rgb(WHITE));self.set_xy(18,100)
         nm=s(self.info_fundo.get("nm_fundo","Fundo de Pensao"))
-        self.multi_cell(174,12,f"RELATORIO DIAGNOSTICO DE ALM\n{nm}",ln=True)
-        self.set_font("Helvetica","",11);y=160
+        self.multi_cell(174,11,f"RELATORIO DIAGNOSTICO DE ALM\n{nm}",ln=True)
+        self.set_font("Helvetica","",11);y=max(self.get_y()+8,155)
         for label,val in [("Plano",self.params.get("nome_plano","Plano BD")),
                           ("Data-Base",self.info_fundo.get("data_base","")),
                           ("Administrador",self.info_fundo.get("nm_admin","")),
@@ -204,5 +204,3 @@ def gerar_pdf(info,params,metricas,df_ativos,df_passivo,df_exp,df_gaps,df_stress
             " A memoria de calculo completa esta disponivel no arquivo Excel exportado pelo sistema."
             " Este relatorio nao substitui a avaliacao do atuario responsavel.")
     pdf.multi_cell(0,5,s(nota))
-    pdf.set_text_color(0,0,0)
-    return bytes(pdf.output())
