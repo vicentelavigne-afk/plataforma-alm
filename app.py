@@ -239,7 +239,7 @@ with st.sidebar:
     excel_fluxo_ativos = st.file_uploader("4. Fluxo Futuro dos Ativos (Excel)", type=["xlsx","xls"],
                                      help="Cronograma de pagamentos futuros por ativo (opcional — habilita CFM)")
 
-    st.markdown('<div class="sidebar-title">🤖 Assistente IA (OpenAI)</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sidebar-title">💬 Assistente IA (OpenAI)</div>', unsafe_allow_html=True)
     api_key_input = st.text_input("Chave de API OpenAI", type="password",
                                    placeholder="sk-...", help="platform.openai.com/api-keys")
     if api_key_input:
@@ -538,13 +538,13 @@ st.markdown(f"""
 tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs([
     "📊 Dashboard",
     "📈 Solvência",
-    "💧 Gaps Liquidez",
-    "🎯 CFM & Otimização",
-    "📐 Reservas",
+    "📉 Gaps Liquidez",
+    "⚖️ CFM & Otimização",
+    "🏛️ Reservas",
     "⚡ Stress Test",
     "📝 Relatório",
-    "🤖 Assistente IA",
-    "🕐 Histórico",
+    "💬 Assistente IA",
+    "📅 Histórico",
 ])
 
 # ════════════════════════════════════════════════════════════════════════════
