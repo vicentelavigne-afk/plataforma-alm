@@ -44,13 +44,14 @@ def _chart_gaps(df_gaps,anos_max=20):
     plt.tight_layout();buf=io.BytesIO();fig.savefig(buf,format="png",dpi=130,bbox_inches="tight");plt.close(fig);buf.seek(0);return buf.read()
 
 def _chart_indexadores(df_exp):
-    fig,ax=plt.subplots(figsize=(5,4));fig.patch.set_facecolor("white")
+    fig,ax=plt.subplots(figsize=(5,5));fig.patch.set_facecolor("white")
     colors=["#3B8091","#2A9D90","#E76E50","#E8C468","#274754","#94A3B8"]
     wedges,texts,autotexts=ax.pie(df_exp["percentual"],labels=df_exp["indexador"],
-        autopct="%1.1f%%",colors=colors[:len(df_exp)],startangle=90,pctdistance=0.8,
-        wedgeprops=dict(linewidth=1,edgecolor="white"))
+        autopct="%1.1f%%",colors=colors[:len(df_exp)],startangle=90,pctdistance=0.75,
+        wedgeprops=dict(linewidth=1.5,edgecolor="white"))
     for t in texts:t.set_fontsize(9)
-    for a in autotexts:a.set_fontsize(8);a.set_color("white")
+    for a in autotexts:a.set_fontsize(8);a.set_color("white");a.set_fontweight("bold")
+    ax.set_aspect("equal")
     plt.tight_layout();buf=io.BytesIO();fig.savefig(buf,format="png",dpi=130,bbox_inches="tight");plt.close(fig);buf.seek(0);return buf.read()
 
 def _chart_duration(dur_a,dur_p,lim):
@@ -86,8 +87,12 @@ class RelatorioALM(FPDF):
         self.set_auto_page_break(False)
         self.set_fill_color(*rgb(NAVY));self.rect(0,0,210,297,"F")
         self.set_fill_color(*rgb(TEAL));self.rect(0,0,210,3,"F")
-        self.set_font("Helvetica","B",32);self.set_text_color(*rgb(TEAL2));self.set_xy(18,55)
-        self.cell(0,18,"invest",ln=False);self.set_text_color(*rgb(WHITE));self.cell(0,18,"tools",ln=True)
+        self.set_font("Helvetica","B",32);self.set_xy(18,55)
+        self.set_text_color(*rgb(TEAL2))
+        w1=self.get_string_width("invest")+1
+        self.cell(w1,18,"invest",ln=False)
+        self.set_text_color(*rgb(WHITE))
+        self.cell(self.get_string_width("tools")+2,18,"tools",ln=True)
         self.set_font("Helvetica","",13);self.set_text_color(*rgb(TEAL));self.set_xy(18,78)
         self.cell(0,8,"PLATAFORMA DE ALM INTELIGENTE PARA FUNDOS DE PENSAO",ln=True)
         self.set_draw_color(*rgb(TEAL));self.set_line_width(0.5);self.line(18,92,192,92)
@@ -180,7 +185,7 @@ def gerar_pdf(info,params,metricas,df_ativos,df_passivo,df_exp,df_gaps,df_stress
                      f"{r.get('Delta Ativos (R$ M)',r.get('Δ Ativos (R$ M)',0)):+.1f}",
                      f"{r.get('Delta VP Passivo (R$ M)',r.get('Δ VP Passivo (R$ M)',0)):+.1f}",
                      f"{r.get('Gap Duration (anos)',0):+.2f}a"])
-    pdf._tbl(hd,rows,[52,30,34,40,26])
+    pdf._tbl(hd,rows,[50,28,32,38,26])
     pdf._sec("CARTEIRA DE ATIVOS")
     h2=["Ativo","Tipo","Indexador","Duration","Valor(R$M)","% Cart."]
     r2=[[r["ativo"][:24],r["tipo"][:8],r["indexador"],f"{r['duration']:.2f}a",f"R${r['valor_mercado']/1e6:.1f}M",f"{r['pct_carteira']:.1f}%"] for _,r in df_ativos.iterrows()]
@@ -188,11 +193,16 @@ def gerar_pdf(info,params,metricas,df_ativos,df_passivo,df_exp,df_gaps,df_stress
     # CONCLUSAO EXECUTIVA — sem memoria de calculo (Excel separado)
     pdf.ln(4)
     pdf._sec("CONCLUSAO E RECOMENDACOES",color=TEAL)
-    linhas=[l for l in relatorio_texto.split("\n") if l.strip() and not l.startswith("#") and not l.startswith("*")]
+    linhas=[l for l in relatorio_texto.split("\n") if l.strip()
+            and not l.startswith("#") and not l.startswith("*")
+            and not l.startswith("---") and l.strip()!="---"]
     pdf._body("\n".join(linhas[:20]),sz=9)
     pdf.ln(3)
     pdf.set_font("Helvetica","I",8);pdf.set_text_color(*rgb(GRAY))
-    nota=s(f"Relatorio gerado em {date.today().strftime('%d/%m/%Y')} pela Plataforma ALM Inteligente - Investtools. A memoria de calculo completa esta disponivel no arquivo Excel exportado pelo sistema. Este relatorio nao substitui a avaliacao do atuario responsavel.")
-    pdf.multi_cell(0,5,nota)
+    nota = ("Relatorio gerado em " + date.today().strftime("%d/%m/%Y") +
+            " pela Plataforma ALM Inteligente - Investtools." 
+            " A memoria de calculo completa esta disponivel no arquivo Excel exportado pelo sistema."
+            " Este relatorio nao substitui a avaliacao do atuario responsavel.")
+    pdf.multi_cell(0,5,s(nota))
     pdf.set_text_color(0,0,0)
     return bytes(pdf.output())
