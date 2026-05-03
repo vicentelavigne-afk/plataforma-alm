@@ -286,7 +286,9 @@ def render_chat_tab(st, resultado: dict, api_key: str):
     # ── Chat Livre ────────────────────────────────────────────────────────────
     st.markdown("#### Perguntas sobre o Fundo")
 
-    # Sugestões (só quando não há histórico)
+    # ── Sugestões (só quando não há histórico) ───────────────────────────────
+    nova_pergunta = None
+
     if not st.session_state.chat_messages:
         st.markdown("**Sugestões de perguntas:**")
         sugestoes = [
@@ -300,23 +302,36 @@ def render_chat_tab(st, resultado: dict, api_key: str):
             "Em quais anos o fundo terá déficit de caixa?",
         ]
         cols_sug = st.columns(2)
-        for i, s in enumerate(sugestoes):
-            if cols_sug[i % 2].button(s, key=f"alm_sug_chat_{i}_001", use_container_width=True):
-                st.session_state.chat_messages.append({"role": "user", "content": s})
-                # Não chamamos st.rerun() aqui — o Streamlit já reexecuta ao clicar no botão
+        for i, sg in enumerate(sugestoes):
+            if cols_sug[i % 2].button(sg, key=f"alm_sug_chat_{i}_001", use_container_width=True):
+                nova_pergunta = sg
+                break  # apenas uma sugestão por rerun
 
-    # Exibir histórico
+    # ── Exibir histórico ──────────────────────────────────────────────────────
     for msg in st.session_state.chat_messages:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
 
-    # Processar última mensagem do usuário (se ainda sem resposta)
-    if (st.session_state.chat_messages and
-            st.session_state.chat_messages[-1]["role"] == "user"):
-        ultima_pergunta = st.session_state.chat_messages[-1]["content"]
+    # ── Input livre (st.form — único que funciona corretamente dentro de tabs) ──
+    with st.form(key="chat_form_alm", clear_on_submit=True):
+        col_inp, col_btn = st.columns([6, 1])
+        with col_inp:
+            digitado = st.text_input(
+                "pergunta", placeholder="Digite sua pergunta sobre o ALM do fundo...",
+                label_visibility="collapsed"
+            )
+        with col_btn:
+            enviar = st.form_submit_button("Enviar", use_container_width=True)
+    if enviar and digitado:
+        nova_pergunta = digitado
+
+    # ── Processar nova pergunta no mesmo rerun (evita duplo-rerun e perda de aba)
+    if nova_pergunta:
+        with st.chat_message("user"):
+            st.markdown(nova_pergunta)
+
         with st.chat_message("assistant"):
-            # Filtro Python: verifica se a pergunta e do dominio ALM antes de chamar a API
-            if not _pergunta_no_escopo(ultima_pergunta):
+            if not _pergunta_no_escopo(nova_pergunta):
                 resposta = MSG_FORA_ESCOPO
             else:
                 with st.spinner("Analisando..."):
@@ -324,18 +339,22 @@ def render_chat_tab(st, resultado: dict, api_key: str):
                         messages_api = [{"role": "system", "content": system_prompt}]
                         for m in st.session_state.chat_messages:
                             messages_api.append({"role": m["role"], "content": m["content"]})
+                        messages_api.append({"role": "user", "content": nova_pergunta})
                         resposta = chamar_openai(api_key, messages_api)
                     except Exception as e:
                         resposta = "Erro ao processar: " + str(e)[:100]
             st.markdown(resposta)
+
+        # Salvar ambas as mensagens no historico apos mostrar
+        st.session_state.chat_messages.append({"role": "user",      "content": nova_pergunta})
         st.session_state.chat_messages.append({"role": "assistant", "content": resposta})
 
-    # Input livre (deve ser chamado sempre para o campo aparecer na tela)
-    pergunta = st.chat_input("Digite sua pergunta sobre o ALM do fundo...")
-    if pergunta:
-        st.session_state.chat_messages.append({"role": "user", "content": pergunta})
-        # Não chamamos st.rerun() — chat_input já dispara rerun automaticamente
-
+    # ── Limpar conversa ────────────────────────────────────────────
     if st.session_state.chat_messages:
         st.markdown("")
-    
+        if st.button("Limpar conversa", use_container_width=False, key="alm_chat_btn_limpar_001"):
+            st.session_state.chat_messages         = []
+            st.session_state.diagnostico_gerado    = False
+            st.session_state.diagnostico_texto     = ""
+            st.session_state.diagnostico_pendente  = False
+            st.rerun()
