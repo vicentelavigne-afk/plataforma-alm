@@ -155,15 +155,30 @@ MSG_FORA_ESCOPO = (
 )
 
 _ALM_KEYWORDS = [
-    "fundo", "pensão", "pensao", "ativo", "passivo", "duration", "gap", "alm",
-    "solvência", "solvencia", "cobertura", "deficit", "déficit", "ipca", "cdi",
-    "juros", "taxa", "atuarial", "reserva", "pmbc", "pmbac", "carteira",
-    "indexador", "stress", "cfm", "fluxo", "benefício", "beneficio",
-    "contribuição", "contribuicao", "plano", "efpc", "rpps", "previc",
-    "patrimônio", "patrimonio", "renda fixa", "ntn", "ltn", "debenture",
-    "risco", "rentabilidade", "retorno", "benchmark", "meta atuarial",
-    "vp ", " ic ", "indice", "índice", "spread", "inflação", "inflacao",
-    "rebalanceamento", "otimização", "otimizacao", "provisão", "provisao",
+    # Entidade principal
+    "fundo", "pensão", "pensao", "efpc", "rpps", "plano", "previc",
+    # ALM e ativos/passivos
+    "ativo", "passivo", "duration", "gap", "alm", "carteira", "indexador",
+    # Solvência e cobertura
+    "solvência", "solvencia", "cobertura", "deficit", "déficit", "superavit",
+    "superávit", "indice", "índice",
+    # Indicadores macro
+    "ipca", "cdi", "juros", "taxa", "inflação", "inflacao", "spread",
+    # Atuarial e reservas
+    "atuarial", "reserva", "pmbc", "pmbac", "tabua", "tábua", "mortalidade",
+    "provisão", "provisao", "benefício", "beneficio", "contribuição", "contribuicao",
+    # CFM e otimização
+    "cfm", "cash flow", "matching", "score", "otimiz", "rebalance",
+    "fluxo", "liquidez",
+    # Stress e cenários
+    "stress", "cenário", "cenario", "choque",
+    # Títulos e mercado
+    "renda fixa", "ntn", "ltn", "debenture", "ntn-b", "ntn-f", "cri", "fidc",
+    # Risco e retorno
+    "risco", "rentabilidade", "retorno", "benchmark", "meta",
+    # Patrimônio
+    "patrimônio", "patrimonio", "vp ", " ic ",
+    # Relatório
     "relatorio", "relatório", "diagnostico", "diagnóstico",
 ]
 
@@ -349,12 +364,4 @@ def render_chat_tab(st, resultado: dict, api_key: str):
         st.session_state.chat_messages.append({"role": "user",      "content": nova_pergunta})
         st.session_state.chat_messages.append({"role": "assistant", "content": resposta})
 
-    # ── Limpar conversa ────────────────────────────────────────────
-    if st.session_state.chat_messages:
-        st.markdown("")
-        if st.button("Limpar conversa", use_container_width=False, key="alm_chat_btn_limpar_001"):
-            st.session_state.chat_messages         = []
-            st.session_state.diagnostico_gerado    = False
-            st.session_state.diagnostico_texto     = ""
-            st.session_state.diagnostico_pendente  = False
-            st.rerun()
+    # ── Limpar conversa ───────────────────────────────────────────

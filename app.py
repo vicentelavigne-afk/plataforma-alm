@@ -534,6 +534,39 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
+# ── Persistência da aba ativa via localStorage ────────────────────────────────
+# st.chat_input e st.form dentro de tabs causam rerun que reseta para aba 0.
+# Este script salva/restaura a aba ativa no localStorage do navegador.
+st.markdown("""
+<script>
+(function() {
+    var KEY = 'alm_tab_ativa';
+    function getTabs() {
+        return window.parent.document.querySelectorAll('[data-baseweb="tab"]');
+    }
+    function restaurar() {
+        var idx = parseInt(localStorage.getItem(KEY) || '0');
+        var tabs = getTabs();
+        if (tabs.length > idx && idx > 0) {
+            tabs[idx].click();
+        }
+        registrar();
+    }
+    function registrar() {
+        getTabs().forEach(function(tab, i) {
+            tab.addEventListener('click', function() {
+                localStorage.setItem(KEY, i);
+            }, { once: true });
+        });
+    }
+    // Reobserva o DOM para reregistrar após reruns do Streamlit
+    var obs = new MutationObserver(function() { registrar(); });
+    obs.observe(window.parent.document.body, { childList: true, subtree: true });
+    setTimeout(restaurar, 350);
+})();
+</script>
+""", unsafe_allow_html=True)
+
 # ── Tabs ──────────────────────────────────────────────────────────────────────
 tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs([
     "📊 Dashboard",
@@ -1170,22 +1203,8 @@ with tab9:
                 ids_sel = [opcoes[k] for k in sel]
                 df_c = df_hist[df_hist["id"].isin(ids_sel)][
                     ["id","data_hora","data_base","taxa_atuarial","total_ativos",
-                     "vp_passivo","ic","dur_ativo","dur_passivo","gap_duration",
-                     "pct_ipca","cfm_score"]].copy()
-                df_c["total_ativos"] = df_c["total_ativos"].apply(lambda x: "R$ "+str(round(x/1e6,0))+"M")
-                df_c["vp_passivo"] = df_c["vp_passivo"].apply(lambda x: "R$ "+str(round(x/1e6,0))+"M")
-                df_c["ic"] = df_c["ic"].apply(lambda x: str(round(x*100,1))+"%")
-                df_c["gap_duration"] = df_c["gap_duration"].apply(lambda x: str(round(x,2))+"a")
-                df_c["cfm_score"] = df_c["cfm_score"].apply(lambda x: str(round(x,1))+"%" if x else "-")
-                df_c.columns = ["#","Data/Hora","Data-base","Taxa","PL","VP Passivo","IC","Dur.A","Dur.P","Gap","IPCA","CFM"]
-                st.dataframe(df_c.set_index("#"), use_container_width=True)
-
-        st.markdown("---")
-        id_del = st.number_input("ID para excluir", min_value=1, step=1, key="id_del")
-        if st.button("Excluir simulacao", key="btn_del"):
-            excluir_simulacao(int(id_del))
-            st.success("Removida #" + str(int(id_del)))
-            st.rerun()
+                     "vp_passivo","ic","gap_duration","pct_ipca","cfm_score"]]
+                st.dataframe(df_c, use_container_width=True)
 
 
 st.markdown('<div class="footer">Plataforma ALM Inteligente - Investtools 2026 - Confidencial</div>', unsafe_allow_html=True)
