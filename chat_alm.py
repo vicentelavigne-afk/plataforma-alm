@@ -301,26 +301,34 @@ def render_chat_tab(st, resultado: dict, api_key: str):
     # ── Chat Livre ────────────────────────────────────────────────────────────
     st.markdown("#### Perguntas sobre o Fundo")
 
-    # ── Sugestões (só quando não há histórico) ───────────────────────────────
+    # ── Sugestões ─────────────────────────────────────────────────────────────
     nova_pergunta = None
+    sugestoes = [
+        "Qual é o maior risco deste fundo hoje?",
+        "O que significa o índice de cobertura calculado?",
+        "Como melhorar o score de Cash Flow Matching?",
+        "O que acontece se os juros subirem 2%?",
+        "A exposição ao IPCA está adequada para o plano BD?",
+        "Quais ativos aumentar para reduzir o gap de duration?",
+        "Como interpretar as reservas matemáticas calculadas?",
+        "Em quais anos o fundo terá déficit de caixa?",
+    ]
 
+    # Sem histórico: exibe em destaque. Com histórico: exibe colapsado.
     if not st.session_state.chat_messages:
         st.markdown("**Sugestões de perguntas:**")
-        sugestoes = [
-            "Qual é o maior risco deste fundo hoje?",
-            "O que significa o índice de cobertura calculado?",
-            "Como melhorar o score de Cash Flow Matching?",
-            "O que acontece se os juros subirem 2%?",
-            "A exposição ao IPCA está adequada para o plano BD?",
-            "Quais ativos aumentar para reduzir o gap de duration?",
-            "Como interpretar as reservas matemáticas calculadas?",
-            "Em quais anos o fundo terá déficit de caixa?",
-        ]
         cols_sug = st.columns(2)
         for i, sg in enumerate(sugestoes):
-            if cols_sug[i % 2].button(sg, key=f"alm_sug_chat_{i}_001", use_container_width=True):
+            if cols_sug[i % 2].button(sg, key=f"alm_sug_{i}_a", use_container_width=True):
                 nova_pergunta = sg
-                break  # apenas uma sugestão por rerun
+                break
+    else:
+        with st.expander("💡 Sugestões de perguntas"):
+            cols_sug = st.columns(2)
+            for i, sg in enumerate(sugestoes):
+                if cols_sug[i % 2].button(sg, key=f"alm_sug_{i}_b", use_container_width=True):
+                    nova_pergunta = sg
+                    break
 
     # ── Exibir histórico ──────────────────────────────────────────────────────
     for msg in st.session_state.chat_messages:
@@ -364,4 +372,12 @@ def render_chat_tab(st, resultado: dict, api_key: str):
         st.session_state.chat_messages.append({"role": "user",      "content": nova_pergunta})
         st.session_state.chat_messages.append({"role": "assistant", "content": resposta})
 
-    # ── Limpar conversa ───────────────────────────────────────────
+    # ── Limpar conversa ────────────────────────────────────────────
+    if st.session_state.chat_messages:
+        st.markdown("")
+        if st.button("Limpar conversa", use_container_width=False, key="alm_chat_btn_limpar_001"):
+            st.session_state.chat_messages         = []
+            st.session_state.diagnostico_gerado    = False
+            st.session_state.diagnostico_texto     = ""
+            st.session_state.diagnostico_pendente  = False
+            st.rerun()

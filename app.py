@@ -534,38 +534,37 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# ── Persistência da aba ativa via localStorage ────────────────────────────────
-# st.chat_input e st.form dentro de tabs causam rerun que reseta para aba 0.
-# Este script salva/restaura a aba ativa no localStorage do navegador.
-st.markdown("""
+# ── Persistência da aba ativa (components.html executa em CADA rerun) ─────────
+import streamlit.components.v1 as _components
+_components.html("""
 <script>
 (function() {
     var KEY = 'alm_tab_ativa';
-    function getTabs() {
-        return window.parent.document.querySelectorAll('[data-baseweb="tab"]');
-    }
+    function tabs() { return window.parent.document.querySelectorAll('[data-baseweb="tab"]'); }
+
     function restaurar() {
         var idx = parseInt(localStorage.getItem(KEY) || '0');
-        var tabs = getTabs();
-        if (tabs.length > idx && idx > 0) {
-            tabs[idx].click();
+        if (idx === 0) { registrar(); return; }
+        var t = tabs();
+        if (t.length > idx && t[idx]) {
+            if (t[idx].getAttribute('aria-selected') !== 'true') { t[idx].click(); }
         }
         registrar();
     }
+
     function registrar() {
-        getTabs().forEach(function(tab, i) {
-            tab.addEventListener('click', function() {
-                localStorage.setItem(KEY, i);
-            }, { once: true });
+        tabs().forEach(function(tab, i) {
+            tab.onclick = function() { localStorage.setItem(KEY, i); };
         });
     }
-    // Reobserva o DOM para reregistrar após reruns do Streamlit
-    var obs = new MutationObserver(function() { registrar(); });
-    obs.observe(window.parent.document.body, { childList: true, subtree: true });
-    setTimeout(restaurar, 350);
+
+    // Múltiplas tentativas para cobrir os dois passes de render do st.form
+    [250, 600, 1100].forEach(function(d) {
+        setTimeout(function() { restaurar(); }, d);
+    });
 })();
 </script>
-""", unsafe_allow_html=True)
+""", height=0)
 
 # ── Tabs ──────────────────────────────────────────────────────────────────────
 tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs([
