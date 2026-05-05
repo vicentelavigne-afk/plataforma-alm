@@ -253,18 +253,29 @@ with st.sidebar:
     st.markdown('<hr style="border-color:#E4E4E7;">', unsafe_allow_html=True)
     st.markdown('<div class="sidebar-title">⚙️ Configurações</div>', unsafe_allow_html=True)
     taxa_manual = st.number_input("Taxa Atuarial (% a.a. real)",
-                                   min_value=1.0, max_value=10.0, value=4.5, step=0.1)
+                                   min_value=1.0, max_value=10.0, value=4.5, step=0.1,
+                                   help="Altera o cálculo somente após clicar em Processar ALM")
     anos_graf   = st.slider("Horizonte do Gráfico (anos)", 10, 40, 20)
+    # Alerta se taxa diverge do último cálculo
+    taxa_calculada = st.session_state.get("resultado", {})
+    if taxa_calculada and isinstance(taxa_calculada, dict):
+        _taxa_usada = taxa_calculada.get("params", {}).get("taxa_atuarial", taxa_manual)
+        if abs(taxa_manual - _taxa_usada) > 0.001:
+            st.warning(f"⚠️ Taxa alterada ({taxa_manual:.1f}%) — resultado atual usa {_taxa_usada:.1f}%. Clique em **Processar ALM** para recalcular.")
 
     # ── Cenários Customizados ────────────────────────────────────────────────
     st.markdown('<hr style="border-color:#E4E4E7;">', unsafe_allow_html=True)
     st.markdown('<div class="sidebar-title">🎭 Cenários Customizados</div>', unsafe_allow_html=True)
+    st.caption("Crie cenários personalizados de stress. Após salvar, clique em **Processar ALM** para incluí-los na análise.")
     with st.expander("➕ Criar novo cenário"):
         nome_cen = st.text_input("Nome do cenário", placeholder="Ex: Crise Crédito 2026",
                                   key="nome_cen")
-        juros_bps = st.slider("Choque de Juros (bps)", -500, 500, 0, 50, key="juros_bps")
-        ipca_bps  = st.slider("Choque de Inflação (bps)", -200, 500, 0, 50, key="ipca_bps")
-        cambio_pct = st.slider("Câmbio (%)", -20.0, 50.0, 0.0, 5.0, key="cambio_pct")
+        juros_bps = st.slider("Choque de Juros (bps)", -500, 500, 0, 50, key="juros_bps",
+                              help="Variação nos juros em pontos-base. Ex: 200 = +2% nos juros")
+        ipca_bps  = st.slider("Choque de Inflação (bps)", -200, 500, 0, 50, key="ipca_bps",
+                              help="Variação no IPCA em pontos-base. Ex: 200 = +2% no IPCA")
+        cambio_pct = st.slider("Câmbio (%)", -20.0, 50.0, 0.0, 5.0, key="cambio_pct",
+                               help="Variação percentual no câmbio. Ex: 15 = desvalorização de 15%")
         if st.button("💾 Salvar cenário", use_container_width=True, key="btn_salvar_cen"):
             if nome_cen.strip():
                 salvar_cenario(nome_cen.strip(), juros_bps, ipca_bps, cambio_pct)
@@ -1056,38 +1067,68 @@ with tab6:
     st.markdown("#### ⚡ Análise de Cenários de Stress")
     st.caption("Impacto estimado nos ativos e no valor presente do passivo para cada cenário macro.")
 
-    # Tabela HTML — sem controles em inglês do Streamlit
-    cabecalhos = ["Cenário", "Δ Ativos (R$M)", "Δ Passivo (R$M)", "Total Ativos (R$M)", "Gap Duration (anos)"]
+    # Tabela HTML com choques + impactos — sem controles em inglês do Streamlit
+    cabecalhos = [
+        "Cenário",
+        "Juros (bps)", "IPCA (bps)", "Câmbio (%)",
+        "Δ Ativos (R$M)", "Δ Passivo (R$M)",
+        "Total Ativos (R$M)", "Gap Duration (a)"
+    ]
     linhas_html = ""
     for i, row in df_stress.iterrows():
-        cenario = row["Cenário"]
-        d_ativo  = row["Δ Ativos (R$ M)"]
+        cenario   = row["Cenário"]
+        juro_bps  = int(row.get("Choque Juros (bps)", 0))
+        ipca_bps  = int(row.get("Choque IPCA (bps)", 0))
+        cambio_p  = float(row.get("Câmbio (%)", 0))
+        d_ativo   = row["Δ Ativos (R$ M)"]
         d_passivo = row["Δ VP Passivo (R$ M)"]
-        total    = row["Novo Total Ativos (R$ M)"]
-        gap      = row["Gap Duration (anos)"]
-        cor_da   = "#16A34A" if d_ativo >= 0 else "#DC2626"
-        cor_dp   = "#DC2626" if d_passivo >= 0 else "#16A34A"
-        cor_gap  = "#DC2626" if abs(gap) > lim_dur else "#16A34A"
+        total     = row["Novo Total Ativos (R$ M)"]
+        gap       = row["Gap Duration (anos)"]
+        cor_da    = "#16A34A" if d_ativo  >= 0 else "#DC2626"
+        cor_dp    = "#DC2626" if d_passivo >= 0 else "#16A34A"
+        cor_gap   = "#DC2626" if abs(gap) > lim_dur else "#16A34A"
+        cor_j     = "#DC2626" if juro_bps > 0 else ("#16A34A" if juro_bps < 0 else "#94A3B8")
+        cor_i     = "#DC2626" if ipca_bps > 0 else ("#16A34A" if ipca_bps < 0 else "#94A3B8")
+        cor_c     = "#DC2626" if cambio_p > 0 else ("#16A34A" if cambio_p < 0 else "#94A3B8")
         bg = "#F8FAFC" if i % 2 == 0 else "#FFFFFF"
+        j_txt  = f"{juro_bps:+d}" if juro_bps != 0 else "—"
+        i_txt  = f"{ipca_bps:+d}" if ipca_bps != 0 else "—"
+        c_txt  = f"{cambio_p:+.0f}%" if cambio_p != 0 else "—"
         linhas_html += f"""
         <tr style="background:{bg};">
-            <td style="padding:0.5rem 0.8rem;font-weight:600;color:#1E3A5F;">{cenario}</td>
-            <td style="padding:0.5rem 0.8rem;text-align:right;color:{cor_da};font-weight:700;">{d_ativo:+.1f}</td>
-            <td style="padding:0.5rem 0.8rem;text-align:right;color:{cor_dp};font-weight:700;">{d_passivo:+.1f}</td>
-            <td style="padding:0.5rem 0.8rem;text-align:right;color:#334155;">{total:.0f}</td>
-            <td style="padding:0.5rem 0.8rem;text-align:right;color:{cor_gap};font-weight:700;">{gap:+.2f}</td>
+            <td style="padding:0.45rem 0.7rem;font-weight:600;color:#1E3A5F;">{cenario}</td>
+            <td style="padding:0.45rem 0.7rem;text-align:center;color:{cor_j};font-weight:600;font-size:0.82rem;">{j_txt}</td>
+            <td style="padding:0.45rem 0.7rem;text-align:center;color:{cor_i};font-weight:600;font-size:0.82rem;">{i_txt}</td>
+            <td style="padding:0.45rem 0.7rem;text-align:center;color:{cor_c};font-weight:600;font-size:0.82rem;">{c_txt}</td>
+            <td style="padding:0.45rem 0.7rem;text-align:right;color:{cor_da};font-weight:700;">{d_ativo:+.1f}</td>
+            <td style="padding:0.45rem 0.7rem;text-align:right;color:{cor_dp};font-weight:700;">{d_passivo:+.1f}</td>
+            <td style="padding:0.45rem 0.7rem;text-align:right;color:#334155;">{total:.0f}</td>
+            <td style="padding:0.45rem 0.7rem;text-align:right;color:{cor_gap};font-weight:700;">{gap:+.2f}</td>
         </tr>"""
-    cabecalho_html = "".join(
-        f'<th style="padding:0.5rem 0.8rem;text-align:{"left" if j==0 else "right"};'
-        f'color:white;font-size:0.78rem;font-weight:700;letter-spacing:0.03em;">{h}</th>'
-        for j, h in enumerate(cabecalhos)
+    # Dois grupos de cabeçalho: Choques | Impactos
+    header_grupo = (
+        '<tr style="background:#274754;">'
+        '<th style="padding:0.3rem 0.7rem;color:#94A3B8;font-size:0.72rem;font-weight:600;"></th>'
+        '<th colspan="3" style="padding:0.3rem;text-align:center;color:#BFDBFE;font-size:0.72rem;font-weight:700;letter-spacing:0.05em;border-left:1px solid #3B8091;">CHOQUES APLICADOS</th>'
+        '<th colspan="4" style="padding:0.3rem;text-align:center;color:#BBF7D0;font-size:0.72rem;font-weight:700;letter-spacing:0.05em;border-left:1px solid #3B8091;">IMPACTOS CALCULADOS</th>'
+        '</tr>'
     )
+    cabecalho_html = '<tr style="background:#1E3A5F;">' + "".join(
+        f'<th style="padding:0.45rem 0.7rem;text-align:{"left" if j==0 else ("center" if j<=3 else "right")};'
+        f'color:white;font-size:0.78rem;font-weight:700;letter-spacing:0.03em;'
+        f'{"border-left:1px solid #3B8091;" if j in (1,4) else ""}">{h}</th>'
+        for j, h in enumerate(cabecalhos)
+    ) + '</tr>'
     st.markdown(f"""
     <div style="overflow-x:auto;border-radius:8px;border:1px solid #E4E4E7;">
     <table style="width:100%;border-collapse:collapse;font-size:0.85rem;font-family:'Lato',sans-serif;">
-        <thead><tr style="background:#1E3A5F;">{cabecalho_html}</tr></thead>
+        <thead>{header_grupo}{cabecalho_html}</thead>
         <tbody>{linhas_html}</tbody>
     </table>
+    </div>
+    <div style="font-size:0.72rem;color:#94A3B8;margin-top:0.4rem;">
+        🟢 Verde = favorável ao fundo &nbsp;·&nbsp; 🔴 Vermelho = desfavorável ao fundo
+        &nbsp;·&nbsp; Δ Passivo negativo em verde = VP das obrigações caiu (bom)
     </div>
     """, unsafe_allow_html=True)
 
@@ -1179,55 +1220,6 @@ with tab7:
         file_name="memoria_calculo_alm_" + info.get("data_base", "") + ".xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         use_container_width=False)
-
-
-# ════════════════════════════════════════════════════════════════════════════
-# TAB 8 - ASSISTENTE IA
-# ════════════════════════════════════════════════════════════════════════════
-with tab8:
-    render_chat_tab(st, st.session_state.resultado, st.session_state.get("openai_key", ""))
-
-
-# ════════════════════════════════════════════════════════════════════════════
-# TAB 9 - HISTORICO DE SIMULACOES
-# ════════════════════════════════════════════════════════════════════════════
-with tab9:
-    st.markdown("#### Historico de Simulacoes")
-    st.caption("Simulacoes salvas localmente. Use o botao na sidebar para salvar a simulacao atual.")
-
-    sims = listar_simulacoes(50)
-
-    if not sims:
-        st.info("Nenhuma simulacao salva ainda. Processe um fundo e clique em Salvar na sidebar.")
-    else:
-        df_hist = pd.DataFrame(sims)
-        df_hist_show = df_hist[["id","data_hora","nm_fundo","nome_plano",
-                                 "data_base","taxa_atuarial","ic",
-                                 "gap_duration","cfm_score","observacao"]].copy()
-        df_hist_show.columns = ["#","Data/Hora","Fundo","Plano","Data-base",
-                                 "Taxa (%)","IC","Gap Dur.","CFM %","Observacao"]
-        df_hist_show["IC"] = df_hist_show["IC"].apply(
-            lambda x: str(round(x * 100, 1)) + "%" if x else "-")
-        df_hist_show["Gap Dur."] = df_hist_show["Gap Dur."].apply(
-            lambda x: str(round(x, 2)) + "a" if x else "-")
-        df_hist_show["CFM %"] = df_hist_show["CFM %"].apply(
-            lambda x: str(round(x, 1)) + "%" if x else "-")
-        st.dataframe(df_hist_show, use_container_width=True, hide_index=True)
-
-        if len(sims) >= 2:
-            st.markdown("#### Comparar Simulacoes")
-            opcoes = {
-                "#" + str(s["id"]) + " - " + s["data_hora"] + " | " + s["nm_fundo"]: s["id"]
-                for s in sims
-            }
-            sel = st.multiselect("Selecione 2 a 4 simulacoes para comparar:",
-                                  list(opcoes.keys()), max_selections=4)
-            if len(sel) >= 2:
-                ids_sel = [opcoes[k] for k in sel]
-                df_c = df_hist[df_hist["id"].isin(ids_sel)][
-                    ["id","data_hora","data_base","taxa_atuarial","total_ativos",
-                     "vp_passivo","ic","gap_duration","pct_ipca","cfm_score"]]
-                st.dataframe(df_c, use_container_width=True)
 
 
 st.markdown('<div class="footer">Plataforma ALM Inteligente - Investtools 2026 - Confidencial</div>', unsafe_allow_html=True)
