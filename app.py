@@ -1056,16 +1056,40 @@ with tab6:
     st.markdown("#### ⚡ Análise de Cenários de Stress")
     st.caption("Impacto estimado nos ativos e no valor presente do passivo para cada cenário macro.")
 
-    # Tabela de stress — apenas colunas essenciais para caber na tela
-    df_stress_show = df_stress[["Cenário",
-        "Δ Ativos (R$ M)", "Δ VP Passivo (R$ M)",
-        "Novo Total Ativos (R$ M)", "Gap Duration (anos)"]].copy()
-    df_stress_show.columns = ["Cenário", "Δ Ativos (M)", "Δ Passivo (M)", "Total Ativos (M)", "Gap (anos)"]
-    df_stress_show["Δ Ativos (M)"]      = df_stress_show["Δ Ativos (M)"].apply(lambda v: f"{v:+.1f}")
-    df_stress_show["Δ Passivo (M)"]     = df_stress_show["Δ Passivo (M)"].apply(lambda v: f"{v:+.1f}")
-    df_stress_show["Total Ativos (M)"]  = df_stress_show["Total Ativos (M)"].apply(lambda v: f"{v:.0f}")
-    df_stress_show["Gap (anos)"]        = df_stress_show["Gap (anos)"].apply(lambda v: f"{v:+.2f}")
-    st.dataframe(df_stress_show, use_container_width=True, hide_index=True)
+    # Tabela HTML — sem controles em inglês do Streamlit
+    cabecalhos = ["Cenário", "Δ Ativos (R$M)", "Δ Passivo (R$M)", "Total Ativos (R$M)", "Gap Duration (anos)"]
+    linhas_html = ""
+    for i, row in df_stress.iterrows():
+        cenario = row["Cenário"]
+        d_ativo  = row["Δ Ativos (R$ M)"]
+        d_passivo = row["Δ VP Passivo (R$ M)"]
+        total    = row["Novo Total Ativos (R$ M)"]
+        gap      = row["Gap Duration (anos)"]
+        cor_da   = "#16A34A" if d_ativo >= 0 else "#DC2626"
+        cor_dp   = "#DC2626" if d_passivo >= 0 else "#16A34A"
+        cor_gap  = "#DC2626" if abs(gap) > lim_dur else "#16A34A"
+        bg = "#F8FAFC" if i % 2 == 0 else "#FFFFFF"
+        linhas_html += f"""
+        <tr style="background:{bg};">
+            <td style="padding:0.5rem 0.8rem;font-weight:600;color:#1E3A5F;">{cenario}</td>
+            <td style="padding:0.5rem 0.8rem;text-align:right;color:{cor_da};font-weight:700;">{d_ativo:+.1f}</td>
+            <td style="padding:0.5rem 0.8rem;text-align:right;color:{cor_dp};font-weight:700;">{d_passivo:+.1f}</td>
+            <td style="padding:0.5rem 0.8rem;text-align:right;color:#334155;">{total:.0f}</td>
+            <td style="padding:0.5rem 0.8rem;text-align:right;color:{cor_gap};font-weight:700;">{gap:+.2f}</td>
+        </tr>"""
+    cabecalho_html = "".join(
+        f'<th style="padding:0.5rem 0.8rem;text-align:{"left" if j==0 else "right"};'
+        f'color:white;font-size:0.78rem;font-weight:700;letter-spacing:0.03em;">{h}</th>'
+        for j, h in enumerate(cabecalhos)
+    )
+    st.markdown(f"""
+    <div style="overflow-x:auto;border-radius:8px;border:1px solid #E4E4E7;">
+    <table style="width:100%;border-collapse:collapse;font-size:0.85rem;font-family:'Lato',sans-serif;">
+        <thead><tr style="background:#1E3A5F;">{cabecalho_html}</tr></thead>
+        <tbody>{linhas_html}</tbody>
+    </table>
+    </div>
+    """, unsafe_allow_html=True)
 
     ativos_base = df_stress.loc[df_stress["Cenário"]=="Base","Novo Total Ativos (R$ M)"].values[0]
     fig_stress = go.Figure()
