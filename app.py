@@ -34,7 +34,7 @@ from alm_calc import (
     calcular_stress_test, gerar_narrativa_relatorio,
 )
 
-# ── Configuração da página ────────────────────────────────────────────────────
+# -- Configuração da página ----------------------------------------------------
 st.set_page_config(
     page_title="ALM Inteligente — Investtools",
     page_icon="📊",
@@ -42,7 +42,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ── CSS / Branding IVT ────────────────────────────────────────────────────────
+# -- CSS / Branding IVT --------------------------------------------------------
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap');
@@ -178,7 +178,7 @@ div[style*="border-radius"] { word-break: break-word; }
 </style>
 """, unsafe_allow_html=True)
 
-# ── Paleta IVT ────────────────────────────────────────────────────────────────
+# -- Paleta IVT ----------------------------------------------------------------
 IVT_COLORS = ["#3B8091","#2A9D90","#E76E50","#E8C468","#274754","#f4a462"]
 IVT_RED    = "#DC2626"
 IVT_GREEN  = "#16A34A"
@@ -226,7 +226,7 @@ def fmt_m(v):
     except:
         return str(v)
 
-# ── Sidebar ───────────────────────────────────────────────────────────────────
+# -- Sidebar -------------------------------------------------------------------
 with st.sidebar:
     st.markdown("""
     <div style="text-align:center;padding:1rem 0;">
@@ -275,7 +275,7 @@ with st.sidebar:
         if abs(taxa_manual - _taxa_usada) > 0.001:
             st.warning(f"⚠️ Taxa alterada ({taxa_manual:.1f}%) — resultado atual usa {_taxa_usada:.1f}%. Clique em **Processar ALM** para recalcular.")
 
-    # ── Cenários Customizados ────────────────────────────────────────────────
+    # -- Cenários Customizados ------------------------------------------------
     st.markdown('<hr style="border-color:#E4E4E7;">', unsafe_allow_html=True)
     st.markdown('<div class="sidebar-title">🎭 Cenários Customizados</div>', unsafe_allow_html=True)
     st.caption("Crie cenários personalizados de stress. Após salvar, clique em **Processar ALM** para incluí-los na análise.")
@@ -309,7 +309,7 @@ with st.sidebar:
                     excluir_cenario(c["id"])
                     st.rerun()
 
-    # ── Histórico ────────────────────────────────────────────────────────────
+    # -- Histórico ------------------------------------------------------------
     st.markdown('<hr style="border-color:#E4E4E7;">', unsafe_allow_html=True)
     n_hist = total_simulacoes()
     st.markdown(f'<div class="sidebar-title">🕐 Histórico ({n_hist} simulações)</div>',
@@ -327,7 +327,7 @@ with st.sidebar:
     st.markdown('<div class="footer">Investtools © 2026<br>Confidencial</div>',
                 unsafe_allow_html=True)
 
-# ── Header ────────────────────────────────────────────────────────────────────
+# -- Header --------------------------------------------------------------------
 st.markdown("""
 <div class="main-header">
     <h1>📊 Plataforma ALM Inteligente</h1>
@@ -338,7 +338,7 @@ st.markdown("""
 if "resultado" not in st.session_state:
     st.session_state.resultado = None
 
-# ── Processamento ─────────────────────────────────────────────────────────────
+# -- Processamento -------------------------------------------------------------
 if processar:
     if not xml_file and not excel_fluxo:
         st.warning("⚠️ Envie pelo menos o XML ANBIMA ou o Fluxo Atuarial para iniciar.")
@@ -346,7 +346,7 @@ if processar:
 
     with st.spinner("Processando dados ALM..."):
         try:
-            # ── Parsers com tolerância a falhas ────────────────────────────
+            # -- Parsers com tolerância a falhas ----------------------------
             info        = {}
             df_ativos   = pd.DataFrame()
             df_passivo  = pd.DataFrame()
@@ -376,7 +376,7 @@ if processar:
                 except Exception as e:
                     st.warning(f"⚠️ Erro ao ler Fluxo Futuro dos Ativos: {e}")
 
-            # ── Cálculos — apenas o que for possível ───────────────────────
+            # -- Cálculos — apenas o que for possível -----------------------
             taxa         = params["taxa_atuarial"]
             total_ativos = df_ativos["valor_mercado"].sum() if not df_ativos.empty else 0
             dur_ativo    = calcular_duration_portfolio(df_ativos) if not df_ativos.empty else 0
@@ -449,7 +449,7 @@ if processar:
             }
             relatorio = gerar_narrativa_relatorio(info, params, metricas)
 
-            # ── Validação dos dados ─────────────────────────────────────────
+            # -- Validação dos dados -----------------------------------------
             val_xml     = validar_xml(df_ativos if not df_ativos.empty else None, info)
             val_passivo = validar_fluxo_atuarial(df_passivo if not df_passivo.empty else None)
             val_params  = validar_parametros(params, usando_defaults_params)
@@ -486,7 +486,7 @@ if processar:
                 st.code(traceback.format_exc())
             st.stop()
 
-# ── Tela inicial ──────────────────────────────────────────────────────────────
+# -- Tela inicial --------------------------------------------------------------
 if st.session_state.resultado is None:
     st.info("👈 Envie os arquivos no menu lateral e clique em **Processar ALM** para iniciar.")
     st.markdown("""
@@ -509,7 +509,7 @@ if st.session_state.resultado is None:
     """, unsafe_allow_html=True)
     st.stop()
 
-# ── Extrair resultado ─────────────────────────────────────────────────────────
+# -- Extrair resultado ---------------------------------------------------------
 res          = st.session_state.resultado
 info         = res["info"];      params    = res["params"]
 metricas     = res["metricas"];  relatorio = res["relatorio"]
@@ -534,7 +534,7 @@ pct_cdi    = metricas["pct_cdi"]
 anos_deficit = metricas["anos_deficit"]
 cfm_score  = metricas.get("cfm_score")
 
-# ── Painel de Qualidade dos Dados ────────────────────────────────────────────
+# -- Painel de Qualidade dos Dados --------------------------------------------
 if "validacao" in res:
     v = res["validacao"]
     render_painel_status(
@@ -557,7 +557,7 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# ── Persistência da aba ativa (components.html executa em CADA rerun) ─────────
+# -- Persistência da aba ativa (components.html executa em CADA rerun) ---------
 import streamlit.components.v1 as _components
 _components.html("""
 <script>
@@ -589,7 +589,7 @@ _components.html("""
 </script>
 """, height=0)
 
-# ── Tabs ──────────────────────────────────────────────────────────────────────
+# -- Tabs ----------------------------------------------------------------------
 tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs([
     "📊 Dashboard",
     "📈 Solvência",
@@ -602,9 +602,9 @@ tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs([
     "📅 Histórico",
 ])
 
-# ════════════════════════════════════════════════════════════════════════════
+# ============================================================================
 # TAB 1 — DASHBOARD
-# ════════════════════════════════════════════════════════════════════════════
+# ============================================================================
 with tab1:
     st.markdown("#### Indicadores Principais")
 
@@ -704,9 +704,9 @@ with tab1:
     st.dataframe(df_show, use_container_width=True, hide_index=True)
 
 
-# ════════════════════════════════════════════════════════════════════════════
+# ============================================================================
 # TAB 2 — SOLVÊNCIA PROJETADA
-# ════════════════════════════════════════════════════════════════════════════
+# ============================================================================
 with tab2:
     st.markdown("#### 📈 Solvência Projetada — Índice de Cobertura ao Longo do Tempo")
     st.caption(f"IC = PL / VP Passivo · Retorno esperado: IPCA + {taxa:.1f}% a.a. + prêmio estimado")
@@ -799,9 +799,9 @@ with tab2:
         st.dataframe(df_t, use_container_width=True, hide_index=True)
 
 
-# ════════════════════════════════════════════════════════════════════════════
+# ============================================================================
 # TAB 3 — GAPS DE LIQUIDEZ
-# ════════════════════════════════════════════════════════════════════════════
+# ============================================================================
 with tab3:
     view_tipo = st.radio("Visualização", ["Anual", "Mensal (próximos 3 anos)"],
                           horizontal=True)
@@ -866,13 +866,13 @@ with tab3:
             f"Próximos {anos_graf} anos"), unsafe_allow_html=True)
 
 
-# ════════════════════════════════════════════════════════════════════════════
+# ============================================================================
 # TAB 4 — CFM & OTIMIZAÇÃO
-# ════════════════════════════════════════════════════════════════════════════
+# ============================================================================
 with tab4:
     col_cfm, col_otim = st.columns([1, 1])
 
-    # ── CFM ──────────────────────────────────────────────────────────────────
+    # -- CFM ------------------------------------------------------------------
     with col_cfm:
         st.markdown("#### 🎯 Cash Flow Matching")
         if not cfm["disponivel"]:
@@ -943,7 +943,7 @@ with tab4:
                 </div>
                 """, unsafe_allow_html=True)
 
-    # ── Otimização ────────────────────────────────────────────────────────────
+    # -- Otimização ------------------------------------------------------------
     with col_otim:
         st.markdown("#### 🔧 Sugestões de Otimização de Carteira")
         opt = otimizacao
@@ -1008,9 +1008,9 @@ with tab4:
         """, unsafe_allow_html=True)
 
 
-# ════════════════════════════════════════════════════════════════════════════
+# ============================================================================
 # TAB 5 — RESERVAS MATEMÁTICAS
-# ════════════════════════════════════════════════════════════════════════════
+# ============================================================================
 with tab5:
     st.markdown("#### 📐 Provisões Matemáticas (PMBC e PMBaC)")
     st.caption(f"Tábua: {reservas['tabua_utilizada']} · Valores aproximados — validação atuarial obrigatória")
@@ -1072,9 +1072,9 @@ with tab5:
     """, unsafe_allow_html=True)
 
 
-# ════════════════════════════════════════════════════════════════════════════
+# ============================================================================
 # TAB 6 — STRESS TEST
-# ════════════════════════════════════════════════════════════════════════════
+# ============================================================================
 with tab6:
     st.markdown("#### ⚡ Análise de Cenários de Stress")
     st.caption("Impacto estimado nos ativos e no valor presente do passivo para cada cenário macro.")
@@ -1163,9 +1163,9 @@ with tab6:
     st.plotly_chart(fig_stress, use_container_width=True)
 
 
-# ════════════════════════════════════════════════════════════════════════════
+# ============================================================================
 # TAB 7 — RELATÓRIO
-# ════════════════════════════════════════════════════════════════════════════
+# ============================================================================
 with tab7:
     col_rel, col_btn = st.columns([4, 1])
     with col_rel:
@@ -1222,4 +1222,4 @@ with tab7:
         if cfm["disponivel"] and not cfm["df_cfm"].empty:
             cfm["df_cfm"].to_excel(writer, sheet_name="CFM", index=False)
         df_stress.to_excel(writer, sheet_name="Stress_Test", index=False)
-        d
+st.markdown('<div class="footer">Plataforma ALM Inteligente - Investtools 2026 - Confidencial</div>', unsafe_allow_html=True)
