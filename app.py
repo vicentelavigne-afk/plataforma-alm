@@ -49,9 +49,9 @@ st.markdown("""
 
 html, body, [class*="css"] { font-family: 'Lato', sans-serif !important; }
 
-/* Ocultar marca Streamlit — mantém botão de recolher sidebar */
+/* Ocultar marca Streamlit e barra inferior direita (Manage app) */
 #MainMenu { visibility: hidden; }
-footer { visibility: hidden; }
+footer { visibility: hidden; display: none !important; }
 [data-testid="stHeader"] { background: transparent; }
 [data-testid="stHeader"] a { display: none; }
 [data-testid="stHeader"] img { display: none; }
@@ -68,6 +68,18 @@ button[kind="icon"] { display: none !important; }
 [data-testid="stToolbarActions"] { display: none !important; }
 [data-testid="stAppViewBlockContainer"] + div { display: none !important; }
 section[data-testid="stSidebar"] ~ div > div:last-child button { display: none !important; }
+/* Barra inferior direita — seletores adicionais para versões recentes do Streamlit */
+[data-testid="stStatusWidget"] { display: none !important; }
+[data-testid="stBottom"] { display: none !important; }
+.stBottom { display: none !important; }
+[data-testid="stAppViewBlockContainer"] ~ div { display: none !important; }
+div[class*="StatusWidget"] { display: none !important; }
+div[class*="styles_StatusWidget"] { display: none !important; }
+.st-emotion-cache-1wbqy5l { display: none !important; }
+.st-emotion-cache-fis6aj { display: none !important; }
+[data-testid="stDecoration"] { display: none !important; }
+button[data-testid="baseButton-header"] { display: none !important; }
+[data-testid="baseButton-headerNoPadding"] { display: none !important; }
 
 .main-header {
     background: linear-gradient(135deg, #1E3A5F 0%, #3B8091 100%);
@@ -1210,16 +1222,4 @@ with tab7:
         if cfm["disponivel"] and not cfm["df_cfm"].empty:
             cfm["df_cfm"].to_excel(writer, sheet_name="CFM", index=False)
         df_stress.to_excel(writer, sheet_name="Stress_Test", index=False)
-        df_exp.to_excel(writer, sheet_name="Exposicao_Indexadores", index=False)
-        if not otimizacao["sugestoes"].empty:
-            otimizacao["sugestoes"].to_excel(writer, sheet_name="Otimizacao", index=False)
-        pd.DataFrame(list(premissas.items()), columns=["Parametro", "Valor"]).to_excel(
-            writer, sheet_name="Premissas", index=False)
-    output.seek(0)
-    st.download_button("Baixar Memoria de Calculo (Excel)", data=output.getvalue(),
-        file_name="memoria_calculo_alm_" + info.get("data_base", "") + ".xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        use_container_width=False)
-
-
-st.markdown('<div class="footer">Plataforma ALM Inteligente - Investtools 2026 - Confidencial</div>', unsafe_allow_html=True)
+        d
