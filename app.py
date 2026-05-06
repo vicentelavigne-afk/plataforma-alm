@@ -377,8 +377,9 @@ if processar:
                 except Exception as e:
                     st.warning(f"⚠️ Erro ao ler Fluxo Atuarial: {e}")
 
-            params = parse_parametros(excel_param) if excel_param else {"taxa_atuarial": taxa_manual}
-            params.setdefault("taxa_atuarial", taxa_manual)
+            params = parse_parametros(excel_param) if excel_param else {}
+            # Sidebar sempre tem prioridade sobre o Excel de parâmetros
+            params["taxa_atuarial"] = taxa_manual
             params.setdefault("limite_gap_duration", 1.5)
             params.setdefault("limite_gap_liquidez", 5.0)
 
