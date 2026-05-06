@@ -268,12 +268,14 @@ with st.sidebar:
                                    min_value=1.0, max_value=10.0, value=4.5, step=0.1,
                                    help="Altera o cálculo somente após clicar em Processar ALM")
     anos_graf   = st.slider("Horizonte do Gráfico (anos)", 10, 40, 20)
-    # Alerta se taxa diverge do último cálculo
-    taxa_calculada = st.session_state.get("resultado", {})
-    if taxa_calculada and isinstance(taxa_calculada, dict):
-        _taxa_usada = taxa_calculada.get("params", {}).get("taxa_atuarial", taxa_manual)
+    # Guardar taxa atual para exibir alerta na área principal
+    _res = st.session_state.get("resultado")
+    _taxa_alerta = None
+    if _res and isinstance(_res, dict):
+        _taxa_usada = _res.get("params", {}).get("taxa_atuarial", taxa_manual)
         if abs(taxa_manual - _taxa_usada) > 0.001:
-            st.warning(f"⚠️ Taxa alterada ({taxa_manual:.1f}%) — resultado atual usa {_taxa_usada:.1f}%. Clique em **Processar ALM** para recalcular.")
+            _taxa_alerta = (taxa_manual, _taxa_usada)
+    st.session_state["_taxa_alerta"] = _taxa_alerta
 
     # -- Cenários Customizados ------------------------------------------------
     st.markdown('<hr style="border-color:#E4E4E7;">', unsafe_allow_html=True)
@@ -556,6 +558,16 @@ pct_ipca   = metricas["pct_ipca"]
 pct_cdi    = metricas["pct_cdi"]
 anos_deficit = metricas["anos_deficit"]
 cfm_score  = metricas.get("cfm_score")
+
+# -- Alerta de taxa alterada (área principal — bem visível) -------------------
+_alerta = st.session_state.get("_taxa_alerta")
+if _alerta:
+    _t_novo, _t_usado = _alerta
+    st.warning(
+        f"⚠️ **Taxa atuarial alterada:** sidebar mostra **{_t_novo:.1f}%** mas o resultado atual "
+        f"foi calculado com **{_t_usado:.1f}%**. Clique em **▶ Processar ALM** para recalcular.",
+        icon="⚠️"
+    )
 
 # -- Painel de Qualidade dos Dados --------------------------------------------
 if "validacao" in res:
@@ -1282,11 +1294,4 @@ with tab9:
                 df_c = df_hist[df_hist["id"].isin(ids_sel)][["id","data_hora","data_base","taxa_atuarial","total_ativos","vp_passivo","ic","gap_duration","pct_ipca","cfm_score"]]
                 st.dataframe(df_c, use_container_width=True)
         st.markdown("---")
-        id_del = st.number_input("ID para excluir", min_value=1, step=1, key="id_del")
-        if st.button("Excluir simulacao", key="btn_del"):
-            excluir_simulacao(int(id_del))
-            st.success("Removida #" + str(int(id_del)))
-            st.rerun()
-
-
 st.markdown('<div class="footer">Plataforma ALM Inteligente - Investtools 2026 - Confidencial</div>', unsafe_allow_html=True)
