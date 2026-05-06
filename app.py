@@ -268,14 +268,12 @@ with st.sidebar:
                                    min_value=1.0, max_value=10.0, value=4.5, step=0.1,
                                    help="Altera o cálculo somente após clicar em Processar ALM")
     anos_graf   = st.slider("Horizonte do Gráfico (anos)", 10, 40, 20)
-    # Guardar taxa atual para exibir alerta na área principal
-    _res = st.session_state.get("resultado")
-    _taxa_alerta = None
-    if _res and isinstance(_res, dict):
-        _taxa_usada = _res.get("params", {}).get("taxa_atuarial", taxa_manual)
-        if abs(taxa_manual - _taxa_usada) > 0.001:
-            _taxa_alerta = (taxa_manual, _taxa_usada)
-    st.session_state["_taxa_alerta"] = _taxa_alerta
+    # Alerta: compara sidebar com taxa do ARQUIVO (referência permanente)
+    _taxa_arquivo = st.session_state.get("_taxa_arquivo")  # taxa que estava no Excel
+    if _taxa_arquivo is not None and abs(taxa_manual - _taxa_arquivo) > 0.001:
+        st.session_state["_taxa_alerta"] = (taxa_manual, _taxa_arquivo)
+    else:
+        st.session_state["_taxa_alerta"] = None
 
     # -- Cenários Customizados ------------------------------------------------
     st.markdown('<hr style="border-color:#E4E4E7;">', unsafe_allow_html=True)
@@ -380,6 +378,9 @@ if processar:
                     st.warning(f"⚠️ Erro ao ler Fluxo Atuarial: {e}")
 
             params = parse_parametros(excel_param) if excel_param else {}
+            # Guardar taxa do arquivo antes de sobrescrever (referência permanente)
+            _taxa_do_arquivo = params.get("taxa_atuarial") if excel_param else None
+            st.session_state["_taxa_arquivo"] = _taxa_do_arquivo
             # Sidebar sempre tem prioridade sobre o Excel de parâmetros
             params["taxa_atuarial"] = taxa_manual
             params.setdefault("limite_gap_duration", 1.5)
@@ -559,14 +560,13 @@ pct_cdi    = metricas["pct_cdi"]
 anos_deficit = metricas["anos_deficit"]
 cfm_score  = metricas.get("cfm_score")
 
-# -- Alerta de taxa alterada (área principal — bem visível) -------------------
+# -- Alerta de taxa diferente do arquivo (área principal — bem visível) -------
 _alerta = st.session_state.get("_taxa_alerta")
 if _alerta:
-    _t_novo, _t_usado = _alerta
+    _t_sidebar, _t_arquivo = _alerta
     st.warning(
-        f"⚠️ **Taxa atuarial alterada:** sidebar mostra **{_t_novo:.1f}%** mas o resultado atual "
-        f"foi calculado com **{_t_usado:.1f}%**. Clique em **▶ Processar ALM** para recalcular.",
-        icon="⚠️"
+        f"Taxa atuarial na sidebar **{_t_sidebar:.1f}%** difere da taxa do arquivo de parâmetros "
+        f"**{_t_arquivo:.1f}%**. O cálculo está usando **{_t_sidebar:.1f}%** (sidebar tem prioridade)."
     )
 
 # -- Painel de Qualidade dos Dados --------------------------------------------
@@ -1292,6 +1292,4 @@ with tab9:
             if len(sel) >= 2:
                 ids_sel = [opcoes[k] for k in sel]
                 df_c = df_hist[df_hist["id"].isin(ids_sel)][["id","data_hora","data_base","taxa_atuarial","total_ativos","vp_passivo","ic","gap_duration","pct_ipca","cfm_score"]]
-                st.dataframe(df_c, use_container_width=True)
-        st.markdown("---")
 st.markdown('<div class="footer">Plataforma ALM Inteligente - Investtools 2026 - Confidencial</div>', unsafe_allow_html=True)
