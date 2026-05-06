@@ -291,6 +291,18 @@ with st.sidebar:
         if st.button("💾 Salvar cenário", use_container_width=True, key="btn_salvar_cen"):
             if nome_cen.strip():
                 salvar_cenario(nome_cen.strip(), juros_bps, ipca_bps, cambio_pct)
+                # Guardar também em session_state para garantir persistência no Cloud
+                if "cenarios_sessao" not in st.session_state:
+                    st.session_state.cenarios_sessao = []
+                # Remover se já existia com mesmo nome
+                st.session_state.cenarios_sessao = [
+                    c for c in st.session_state.cenarios_sessao
+                    if c["nome"] != nome_cen.strip()
+                ]
+                st.session_state.cenarios_sessao.append({
+                    "nome": nome_cen.strip(), "juros_bps": juros_bps,
+                    "ipca_bps": ipca_bps, "cambio_pct": cambio_pct
+                })
                 st.success(f"✅ Cenário '{nome_cen}' salvo!")
                 st.rerun()
             else:
@@ -429,8 +441,18 @@ if processar:
                     ("Cambio +",        0, 100, 15),
                     ("Stress Combin.", 300, 200, 20),
                 ]
+                # Cenários salvos no banco
                 for c in listar_cenarios():
                     cenarios.append((c["nome"], c["juros_bps"], c["ipca_bps"], c["cambio_pct"]))
+                # Cenários salvos na sessão (garante persistência no Cloud)
+                for c in st.session_state.get("cenarios_sessao", []):
+                    if not any(x[0] == c["nome"] for x in cenarios):
+                        cenarios.append((c["nome"], c["juros_bps"], c["ipca_bps"], c["cambio_pct"]))
+                # Incluir sliders ativos mesmo sem salvar (se tiverem valores não-zero)
+                if juros_bps != 0 or ipca_bps != 0 or cambio_pct != 0.0:
+                    nome_temp = nome_cen.strip() if nome_cen.strip() else "Cenário Personalizado"
+                    if not any(x[0] == nome_temp for x in cenarios):
+                        cenarios.append((nome_temp, juros_bps, ipca_bps, cambio_pct))
                 df_stress = calcular_stress_test(df_ativos, df_passivo, taxa, cenarios)
 
             metricas = {
@@ -1215,11 +1237,55 @@ with tab7:
         df_ativos.to_excel(writer, sheet_name="Carteira", index=False)
         df_passivo.to_excel(writer, sheet_name="Fluxo_Atuarial", index=False)
         df_gaps.to_excel(writer, sheet_name="Gaps_Liquidez", index=False)
-        df_solvencia[["ano","ic_pct","pl_projetado","vp_passivo_proj","status"]].to_excel(
-            writer, sheet_name="Solvencia_Projetada", index=False)
+        df_solvencia[["ano","ic_pct","pl_projetado","vp_passivo_proj","status"]].to_excel(writer, sheet_name="Solvencia_Projetada", index=False)
         reservas["fluxo_pmbc"].to_excel(writer, sheet_name="PMBC", index=False)
         reservas["fluxo_pmbac"].to_excel(writer, sheet_name="PMBaC", index=False)
-        if cfm["disponivel"] and not cfm["df_cfm"].empty:
-            cfm["df_cfm"].to_excel(writer, sheet_name="CFM", index=False)
+        if cfm["disponivel"] and not cfm["df_cfm"].empty: cfm["df_cfm"].to_excel(writer, sheet_name="CFM", index=False)
         df_stress.to_excel(writer, sheet_name="Stress_Test", index=False)
+        df_exp.to_excel(writer, sheet_name="Exposicao_Indexadores", index=False)
+        if not otimizacao["sugestoes"].empty: otimizacao["sugestoes"].to_excel(writer, sheet_name="Otimizacao", index=False)
+        pd.DataFrame(list(premissas.items()), columns=["Parametro", "Valor"]).to_excel(writer, sheet_name="Premissas", index=False)
+    output.seek(0)
+    st.download_button("Baixar Memoria de Calculo (Excel)", data=output.getvalue(),
+        file_name="memoria_calculo_alm_" + info.get("data_base", "") + ".xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        use_container_width=False)
+
+
+# -- TAB 8 - ASSISTENTE IA ---------------------------------------------------
+with tab8:
+    render_chat_tab(st, st.session_state.resultado, st.session_state.get("openai_key", ""))
+
+
+# -- TAB 9 - HISTORICO -------------------------------------------------------
+with tab9:
+    st.markdown("#### Historico de Simulacoes")
+    st.caption("Simulacoes salvas localmente. Use o botao na sidebar para salvar a simulacao atual.")
+    sims = listar_simulacoes(50)
+    if not sims:
+        st.info("Nenhuma simulacao salva ainda. Processe um fundo e clique em Salvar na sidebar.")
+    else:
+        df_hist = pd.DataFrame(sims)
+        df_hist_show = df_hist[["id","data_hora","nm_fundo","nome_plano","data_base","taxa_atuarial","ic","gap_duration","cfm_score","observacao"]].copy()
+        df_hist_show.columns = ["#","Data/Hora","Fundo","Plano","Data-base","Taxa (%)","IC","Gap Dur.","CFM %","Observacao"]
+        df_hist_show["IC"] = df_hist_show["IC"].apply(lambda x: str(round(x*100,1))+"%"if x else "-")
+        df_hist_show["Gap Dur."] = df_hist_show["Gap Dur."].apply(lambda x: str(round(x,2))+"a" if x else "-")
+        df_hist_show["CFM %"] = df_hist_show["CFM %"].apply(lambda x: str(round(x,1))+"%" if x else "-")
+        st.dataframe(df_hist_show, use_container_width=True, hide_index=True)
+        if len(sims) >= 2:
+            st.markdown("#### Comparar Simulacoes")
+            opcoes = {"#"+str(s["id"])+" - "+s["data_hora"]+" | "+s["nm_fundo"]: s["id"] for s in sims}
+            sel = st.multiselect("Selecione 2 a 4 simulacoes para comparar:", list(opcoes.keys()), max_selections=4)
+            if len(sel) >= 2:
+                ids_sel = [opcoes[k] for k in sel]
+                df_c = df_hist[df_hist["id"].isin(ids_sel)][["id","data_hora","data_base","taxa_atuarial","total_ativos","vp_passivo","ic","gap_duration","pct_ipca","cfm_score"]]
+                st.dataframe(df_c, use_container_width=True)
+        st.markdown("---")
+        id_del = st.number_input("ID para excluir", min_value=1, step=1, key="id_del")
+        if st.button("Excluir simulacao", key="btn_del"):
+            excluir_simulacao(int(id_del))
+            st.success("Removida #" + str(int(id_del)))
+            st.rerun()
+
+
 st.markdown('<div class="footer">Plataforma ALM Inteligente - Investtools 2026 - Confidencial</div>', unsafe_allow_html=True)
