@@ -42,14 +42,13 @@ def render_admin_panel(st):
     with st.form("form_novo_usuario", clear_on_submit=True):
         col1, col2 = st.columns(2)
         with col1:
-            novo_nome    = st.text_input("Nome completo *", placeholder="João Silva")
-            novo_email   = st.text_input("E-mail *", placeholder="gestor@fundo.com.br")
-            novo_fundo   = st.text_input("Nome do Fundo", placeholder="EFPC Exemplo")
+            novo_nome  = st.text_input("Nome completo *", placeholder="João Silva")
+            novo_email = st.text_input("E-mail *", placeholder="gestor@fundo.com.br")
+            novo_fundo = st.text_input("Nome do Fundo", placeholder="EFPC Exemplo")
         with col2:
-            novo_usuario = st.text_input("Usuário (login) *", placeholder="joaosilva")
-            nova_senha   = st.text_input("Senha temporária *", type="password",
-                                          placeholder="Mínimo 6 caracteres")
-            nova_senha2  = st.text_input("Confirmar senha *", type="password")
+            nova_senha  = st.text_input("Senha temporária *", type="password",
+                                         placeholder="Mínimo 6 caracteres")
+            nova_senha2 = st.text_input("Confirmar senha *", type="password")
 
         submitted = st.form_submit_button("💾 Criar Acesso", use_container_width=True)
         if submitted:
@@ -58,7 +57,9 @@ def render_admin_panel(st):
             elif len(nova_senha) < 6:
                 st.error("Senha deve ter ao menos 6 caracteres.")
             else:
-                ok, msg = criar_usuario(novo_nome, novo_email, novo_usuario,
+                # Usar e-mail como identificador único (usuario = parte local do email)
+                usuario_auto = novo_email.strip().lower().split("@")[0] if novo_email else ""
+                ok, msg = criar_usuario(novo_nome, novo_email, usuario_auto,
                                         nova_senha, novo_fundo)
                 if ok:
                     st.success(f"✅ {msg}")
