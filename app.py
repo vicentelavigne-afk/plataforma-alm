@@ -11,6 +11,8 @@ import plotly.express as px
 from datetime import date
 import io, base64
 
+from auth import autenticar, inicializar_usuarios
+from admin_panel import render_admin_panel
 from pdf_report import gerar_pdf
 from chat_alm import render_chat_tab
 from validacao import (
@@ -41,6 +43,44 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+
+# -- Autenticacao --------------------------------------------------------------
+inicializar_usuarios()
+if "usuario_logado" not in st.session_state:
+    st.session_state.usuario_logado = None
+
+if st.session_state.usuario_logado is None:
+    st.markdown("""
+    <div style="max-width:420px;margin:5rem auto 0;text-align:center;">
+    <div style="background:linear-gradient(135deg,#1E3A5F,#3B8091);padding:2rem 2rem 1.5rem;
+                border-radius:12px;margin-bottom:1.5rem;">
+        <div style="font-size:2rem;font-weight:900;color:#2A9D90;font-family:'Lato',sans-serif;letter-spacing:-0.02em;">
+            invest<span style="color:white;">tools</span>
+        </div>
+        <div style="font-size:0.78rem;color:#ECFEFF;letter-spacing:0.12em;margin-top:0.4rem;">
+            PLATAFORMA ALM INTELIGENTE
+        </div>
+    </div>
+    </div>
+    """, unsafe_allow_html=True)
+    col_l, col_c, col_r = st.columns([1, 2, 1])
+    with col_c:
+        st.markdown("#### Acesso à Plataforma")
+        _login_in = st.text_input("E-mail", placeholder="seu@email.com.br", key="login_in")
+        _senha_in = st.text_input("Senha", type="password", key="senha_in")
+        if st.button("Entrar", use_container_width=True, key="btn_login"):
+            _u = autenticar(_login_in.strip(), _senha_in)
+            if _u:
+                st.session_state.usuario_logado = _u
+                st.rerun()
+            else:
+                st.error("Usuário ou senha incorretos.")
+        st.markdown('<div style="text-align:center;font-size:0.77rem;color:#94A3B8;margin-top:1rem;">Acesso restrito. Solicite credenciais à Investtools.</div>', unsafe_allow_html=True)
+    st.stop()
+
+_user = st.session_state.usuario_logado
+_is_admin = _user.get("role") == "admin"
 
 # -- CSS / Branding IVT --------------------------------------------------------
 st.markdown("""
@@ -240,6 +280,17 @@ with st.sidebar:
     <hr style="border-color:#E4E4E7;margin:0.5rem 0;">
     """, unsafe_allow_html=True)
 
+    st.markdown(f"""
+    <div style="background:#F8FAFC;border-radius:6px;padding:0.5rem 0.8rem;
+                margin-bottom:0.8rem;font-size:0.78rem;color:#334155;">
+        \U0001f464 <strong>{_user['nome']}</strong><br>
+        <span style="color:#71717A;">{_user.get('fundo','')}</span>
+    </div>
+    """, unsafe_allow_html=True)
+    if st.button("Sair", key="btn_logout"):
+        st.session_state.usuario_logado = None
+        st.session_state.resultado = None
+        st.rerun()
     st.markdown('<div class="sidebar-title">📁 Arquivos de Entrada</div>', unsafe_allow_html=True)
 
     xml_file     = st.file_uploader("1. Carteira (XML ANBIMA)", type=["xml","txt","text"],
@@ -1292,4 +1343,10 @@ with tab9:
             if len(sel) >= 2:
                 ids_sel = [opcoes[k] for k in sel]
                 df_c = df_hist[df_hist["id"].isin(ids_sel)][["id","data_hora","data_base","taxa_atuarial","total_ativos","vp_passivo","ic","gap_duration","pct_ipca","cfm_score"]]
+
+# -- TAB ADMIN ----------------------------------------------------------------
+if _is_admin and tab_admin is not None:
+    with tab_admin:
+        render_admin_panel(st)
+
 st.markdown('<div class="footer">Plataforma ALM Inteligente - Investtools 2026 - Confidencial</div>', unsafe_allow_html=True)

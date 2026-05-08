@@ -8,3 +8,4 @@ matplotlib>=3.7.0
 openai>=1.0.0
 scipy>=1.11.0
 lxml>=4.9.0
+bcrypt>=4.0.0
