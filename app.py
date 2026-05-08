@@ -564,6 +564,14 @@ if processar:
             st.stop()
 
 # -- Tela inicial --------------------------------------------------------------
+# Admin pode acessar Gestão de Acessos mesmo sem arquivos carregados
+if _is_admin and st.session_state.resultado is None:
+    st.info("👈 Envie os arquivos no menu lateral e clique em **Processar ALM** para iniciar a análise ALM.")
+    st.markdown("---")
+    st.markdown("### 🔐 Gestão de Acessos")
+    render_admin_panel(st)
+    st.stop()
+
 if st.session_state.resultado is None:
     st.info("👈 Envie os arquivos no menu lateral e clique em **Processar ALM** para iniciar.")
     st.markdown("""
