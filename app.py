@@ -676,17 +676,16 @@ _components.html("""
 """, height=0)
 
 # -- Tabs ----------------------------------------------------------------------
-tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs([
-    "📊 Dashboard",
-    "📈 Solvência",
-    "📉 Gaps Liquidez",
-    "⚖️ CFM & Otimização",
-    "🏛️ Reservas",
-    "⚡ Stress Test",
-    "📝 Relatório",
-    "💬 Assistente IA",
-    "📅 Histórico",
-])
+_tab_labels = [
+    "📊 Dashboard", "📈 Solvência", "📉 Gaps Liquidez",
+    "⚖️ CFM & Otimização", "🏛️ Reservas", "⚡ Stress Test",
+    "📝 Relatório", "💬 Assistente IA", "📅 Histórico",
+]
+if _is_admin:
+    _tab_labels.append("🔐 Gestão de Acessos")
+_tabs = st.tabs(_tab_labels)
+tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = _tabs[:9]
+tab_admin = _tabs[9] if _is_admin else None
 
 # ============================================================================
 # TAB 1 — DASHBOARD
