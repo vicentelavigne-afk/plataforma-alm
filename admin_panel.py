@@ -4,7 +4,7 @@ Gerencia logins de clientes. Visivel apenas para o administrador.
 """
 from auth import (
     criar_usuario, listar_usuarios, alterar_status,
-    resetar_senha, excluir_usuario, exportar_usuarios_json,
+    resetar_senha, excluir_usuario,
     total_usuarios, ADMIN_EMAIL
 )
 
@@ -132,22 +132,4 @@ def render_admin_panel(st):
                     st.success("Usuário excluído.")
                     st.rerun()
 
-    st.markdown("---")
 
-    # ── Backup / Export ────────────────────────────────────────────────────────
-    st.markdown("#### 💾 Backup dos Acessos")
-    st.caption("⚠️ Os logins são armazenados localmente. Faça backup periódico — o servidor pode reiniciar e perder os dados.")
-
-    col_exp, col_info = st.columns([2, 3])
-    with col_exp:
-        if st.button("📥 Exportar lista (JSON)", use_container_width=True,
-                      key="btn_export"):
-            dados = exportar_usuarios_json()
-            st.download_button("⬇ Baixar backup.json", data=dados,
-                                file_name="backup_usuarios_alm.json",
-                                mime="application/json",
-                                use_container_width=True,
-                                key="btn_dl_json")
-    with col_info:
-        st.info("O JSON exportado não contém senhas. Para restaurar após reinício do servidor, "
-                "recadastre os usuários manualmente ou implemente importação futura.")
