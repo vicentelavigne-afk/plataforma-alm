@@ -12,21 +12,23 @@ LIGHT=(241,245,249);RED=(220,38,38);GREEN=(22,163,74)
 
 def rgb(t):return t[0],t[1],t[2]
 def s(text):
-    if not isinstance(text,str):text=str(text)
-    for k,v in {"a":"a","a":"a","a":"a","a":"a","e":"e","e":"e",
-         "i":"i","o":"o","o":"o","o":"o","u":"u","c":"c",
-         "A":"A","A":"A","A":"A","E":"E","I":"I","O":"O","O":"O",
-         "U":"U","C":"C","a":"a","a":"a","a":"a","a":"a",
-         "e":"e","e":"e","i":"i","o":"o","o":"o","o":"o","u":"u",
-         "u":"u","c":"c","C":"C","A":"A","A":"A","A":"A","A":"A",
-         "E":"E","E":"E","I":"I","O":"O","O":"O","O":"O","U":"U",
-         "á":"a","à":"a","ã":"a","â":"a","é":"e","ê":"e","í":"i",
-         "ó":"o","ô":"o","õ":"o","ú":"u","ü":"u","ç":"c",
-         "Á":"A","À":"A","Ã":"A","Â":"A","É":"E","Ê":"E",
-         "Í":"I","Ó":"O","Ô":"O","Õ":"O","Ú":"U","Ç":"C",
-         "—":"-","–":"-","'":"'","“":'"',"”":'"',
-         "©":"(c)","±":"+/-"}.items():text=text.replace(k,v)
-    return text.encode("latin-1",errors="replace").decode("latin-1")
+    """Prepara texto para PDF Latin-1: preserva acentos portugueses,
+    substitui apenas caracteres fora do Latin-1 (smart quotes, travessao, etc.)."""
+    if not isinstance(text, str): text = str(text)
+    # Substituir apenas caracteres genuinamente fora do Latin-1
+    replacements = {
+        "—": "-", "–": "-",          # travessao e meia-risca
+        "‘": "'", "’": "'",           # aspas simples curvas
+        "“": '"', "”": '"',           # aspas duplas curvas
+        "…": "...",                         # reticencias
+        "©": "(c)", "±": "+/-",       # copyright, mais-menos
+        "•": "-", "→": "->",          # bullet, seta
+        "×": "x", "÷": "/",           # multiplicacao, divisao
+    }
+    for k, v in replacements.items():
+        text = text.replace(k, v)
+    # Codificar em Latin-1 preservando acentos; caracteres fora do range viram "?"
+    return text.encode("latin-1", errors="replace").decode("latin-1")
 
 def _chart_gaps(df_gaps,anos_max=20):
     df=df_gaps[df_gaps["ano"]<=date.today().year+anos_max].copy()
@@ -96,7 +98,7 @@ class RelatorioALM(FPDF):
         if self.page_no()==1:return  # Capa tem seu próprio rodapé
         self.set_y(-12);self.set_fill_color(*rgb(LIGHT));self.rect(0,self.get_y(),210,12,"F")
         self.set_font("Helvetica","",7);self.set_text_color(*rgb(GRAY))
-        self.cell(0,6,s(f"Investtools (c) 2026  |  Confidencial  |  Gerado em {date.today().strftime('%d/%m/%Y')}  |  Este relatorio nao substitui a avaliacao do atuario responsavel"),align="C")
+        self.cell(0,6,s(f"Investtools (c) 2026  |  Confidencial  |  Gerado em {date.today().strftime('%d/%m/%Y')}  |  Este relatório não substitui a avaliação do atuário responsável"),align="C")
         self.set_text_color(0,0,0)
     def _capa(self):
         self.set_auto_page_break(False)
@@ -109,11 +111,11 @@ class RelatorioALM(FPDF):
         self.set_text_color(*rgb(WHITE))
         self.cell(self.get_string_width("tools")+2,18,"tools",ln=True)
         self.set_font("Helvetica","",13);self.set_text_color(*rgb(TEAL));self.set_xy(18,78)
-        self.cell(0,8,"PLATAFORMA DE ALM INTELIGENTE PARA FUNDOS DE PENSAO",ln=True)
+        self.cell(0,8,"PLATAFORMA DE ALM INTELIGENTE PARA FUNDOS DE PENSÃO",ln=True)
         self.set_draw_color(*rgb(TEAL));self.set_line_width(0.5);self.line(18,92,192,92)
         self.set_font("Helvetica","B",20);self.set_text_color(*rgb(WHITE));self.set_xy(18,100)
-        nm=s(self.info_fundo.get("nm_fundo","Fundo de Pensao"))
-        self.multi_cell(174,11,"RELATORIO DIAGNOSTICO DE ALM")
+        nm=s(self.info_fundo.get("nm_fundo","Fundo de Pensão"))
+        self.multi_cell(174,11,"RELATÓRIO DIAGNÓSTICO DE ALM")
         self.set_xy(18,self.get_y()+2)
         self.set_font("Helvetica","B",16)
         self.multi_cell(174,10,nm[:60])
@@ -122,7 +124,7 @@ class RelatorioALM(FPDF):
                           ("Data-Base",self.info_fundo.get("data_base","")),
                           ("Administrador",self.info_fundo.get("nm_admin","")),
                           ("Taxa Atuarial",f"IPCA + {self.params.get('taxa_atuarial',4.5):.2f}% a.a."),
-                          ("Relatorio gerado em",date.today().strftime("%d/%m/%Y"))]:
+                          ("Relatório gerado em",date.today().strftime("%d/%m/%Y"))]:
             self.set_xy(18,y);self.set_font("Helvetica","B",9);self.set_text_color(*rgb(TEAL2))
             self.cell(55,6,s(label).upper(),ln=False)
             self.set_font("Helvetica","",10);self.set_text_color(*rgb(WHITE));self.cell(0,6,s(str(val)),ln=True);y+=9
@@ -178,22 +180,22 @@ def gerar_pdf(info,params,metricas,df_ativos,df_passivo,df_exp,df_gaps,df_stress
     # PAG 2
     pdf.add_page()
     pdf._sec("RESUMO EXECUTIVO")
-    plano=s(params.get("nome_plano","Plano BD"));nm=s(info.get("nm_fundo","Fundo de Pensao"));db=s(info.get("data_base",""))
+    plano=s(params.get("nome_plano","Plano BD"));nm=s(info.get("nm_fundo","Fundo de Pensão"));db=s(info.get("data_base",""))
     pdf._body(f"Diagnostico de ALM do {plano} de {nm}, carteira de {db}. Patrimônio: R$ {tot:.0f}M. VP Passivo: R$ {vp:.0f}M (IPCA + {taxa:.2f}% a.a.).")
     pdf.ln(2);pdf._sec("INDICADORES-CHAVE",color=TEAL)
     pdf._kpi([("PL",f"R$ {tot:.0f}M","ok"),("VP Passivo",f"R$ {vp:.0f}M","ok"),("Gap Dur.",f"{gap:+.2f}a",sd),("Exp. IPCA",f"{pct_ipca:.1f}%",si),("Anos Deficit",str(len(anos)),sl)])
-    pdf._sec("ANALISE DE DURATION")
+    pdf._sec("ANÁLISE DE DURATION")
     pdf._body(f"Duration ativos: {dur_a:.2f}a. Duration passivo: {dur_p:.2f}a. Gap: {gap:+.2f}a. {'ACIMA do limite da PI' if abs(gap)>lim else 'Dentro dos limites da PI'} (+/- {lim:.1f}a).")
     pdf._img(id_,w=100,h=65)
     # PAG 3
-    pdf.add_page();pdf._sec("EXPOSICAO POR INDEXADOR")
-    pdf._body(f"IPCA: {pct_ipca:.1f}%. CDI/Selic: {pct_cdi:.1f}%. {'ATENCAO: abaixo do minimo de 50% recomendado para planos BD.' if pct_ipca<50 else 'Adequada ao perfil BD.'}")
+    pdf.add_page();pdf._sec("EXPOSIÇÃO POR INDEXADOR")
+    pdf._body(f"IPCA: {pct_ipca:.1f}%. CDI/Selic: {pct_cdi:.1f}%. {'ATENÇÃO: abaixo do minimo de 50% recomendado para planos BD.' if pct_ipca<50 else 'Adequada ao perfil BD.'}")
     pdf._img(ie,w=100);pdf._sec("GAPS DE LIQUIDEZ")
     if anos:pdf._body(f"Anos com deficit: {', '.join(map(str,anos[:6]))}{'...' if len(anos)>6 else ''}. O fundo precisara usar o patrimônio acumulado para honrar beneficios.")
     else:pdf._body("Nenhum deficit de liquidez relevante no horizonte analisado.")
     pdf._img(ig,w=174,h=65)
     # PAG 4
-    pdf.add_page();pdf._sec("CENARIOS DE STRESS")
+    pdf.add_page();pdf._sec("CENÁRIOS DE STRESS")
     pdf._body("Impacto estimado nos ativos e VP passivo para cada cenario macro.")
     hd=["Cenario","Choque Juros","D Ativos(M)","D VP Pass.(M)","Gap Dur."]
     rows=[]
@@ -210,7 +212,7 @@ def gerar_pdf(info,params,metricas,df_ativos,df_passivo,df_exp,df_gaps,df_stress
     pdf._tbl(h2,r2,[56,18,22,22,32,24])
     # CONCLUSAO EXECUTIVA — sem memoria de calculo (Excel separado)
     pdf.ln(4)
-    pdf._sec("CONCLUSAO E RECOMENDACOES",color=TEAL)
+    pdf._sec("CONCLUSÃO E RECOMENDAÇÕES",color=TEAL)
     linhas=[l for l in relatorio_texto.split("\n") if l.strip()
             and not l.startswith("#") and not l.startswith("*")
             and not l.startswith("---") and l.strip()!="---"]
@@ -219,7 +221,7 @@ def gerar_pdf(info,params,metricas,df_ativos,df_passivo,df_exp,df_gaps,df_stress
     nota = ("Relatorio gerado em " + date.today().strftime("%d/%m/%Y") +
             " pela Plataforma ALM Inteligente - Investtools."
             " A memoria de calculo completa esta disponivel no Excel exportado pelo sistema."
-            " Este relatorio nao substitui a avaliacao do atuario responsavel.")
+            " Este relatório não substitui a avaliação do atuário responsável.")
     pdf.multi_cell(0, 5, s(nota))
     pdf.set_text_color(0, 0, 0)
     return bytes(pdf.output())
