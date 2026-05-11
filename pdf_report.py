@@ -91,7 +91,7 @@ class RelatorioALM(FPDF):
         if self.page_no()==1:return
         self.set_fill_color(*rgb(NAVY));self.rect(0,0,210,10,"F")
         self.set_font("Helvetica","B",8);self.set_text_color(*rgb(WHITE));self.set_xy(18,2)
-        self.cell(0,6,"INVESTTOOLS  |  Plataforma ALM Inteligente  |  Relatorio Diagnostico",ln=False)
+        self.cell(0,6,"INVESTTOOLS  |  Plataforma ALM Inteligente  |  Relatório Diagnóstico",ln=False)
         self.set_xy(-80,2);self.cell(62,6,s(self.info_fundo.get("nm_fundo",""))[:35],align="R")
         self.set_text_color(0,0,0);self.set_xy(18,22)
     def footer(self):
@@ -181,26 +181,26 @@ def gerar_pdf(info,params,metricas,df_ativos,df_passivo,df_exp,df_gaps,df_stress
     pdf.add_page()
     pdf._sec("RESUMO EXECUTIVO")
     plano=s(params.get("nome_plano","Plano BD"));nm=s(info.get("nm_fundo","Fundo de Pensão"));db=s(info.get("data_base",""))
-    pdf._body(f"Diagnostico de ALM do {plano} de {nm}, carteira de {db}. Patrimônio: R$ {tot:.0f}M. VP Passivo: R$ {vp:.0f}M (IPCA + {taxa:.2f}% a.a.).")
+    pdf._body(f"Diagnóstico de ALM do {plano} de {nm}, carteira de {db}. Patrimônio: R$ {tot:.0f}M. VP Passivo: R$ {vp:.0f}M (IPCA + {taxa:.2f}% a.a.).")
     pdf.ln(2);pdf._sec("INDICADORES-CHAVE",color=TEAL)
-    pdf._kpi([("PL",f"R$ {tot:.0f}M","ok"),("VP Passivo",f"R$ {vp:.0f}M","ok"),("Gap Dur.",f"{gap:+.2f}a",sd),("Exp. IPCA",f"{pct_ipca:.1f}%",si),("Anos Deficit",str(len(anos)),sl)])
+    pdf._kpi([("PL",f"R$ {tot:.0f}M","ok"),("VP Passivo",f"R$ {vp:.0f}M","ok"),("Gap Dur.",f"{gap:+.2f}a",sd),("Exp. IPCA",f"{pct_ipca:.1f}%",si),("Anos Déficit",str(len(anos)),sl)])
     pdf._sec("ANÁLISE DE DURATION")
     pdf._body(f"Duration ativos: {dur_a:.2f}a. Duration passivo: {dur_p:.2f}a. Gap: {gap:+.2f}a. {'ACIMA do limite da PI' if abs(gap)>lim else 'Dentro dos limites da PI'} (+/- {lim:.1f}a).")
     pdf._img(id_,w=100,h=65)
     # PAG 3
     pdf.add_page();pdf._sec("EXPOSIÇÃO POR INDEXADOR")
-    pdf._body(f"IPCA: {pct_ipca:.1f}%. CDI/Selic: {pct_cdi:.1f}%. {'ATENÇÃO: abaixo do minimo de 50% recomendado para planos BD.' if pct_ipca<50 else 'Adequada ao perfil BD.'}")
+    pdf._body(f"IPCA: {pct_ipca:.1f}%. CDI/Selic: {pct_cdi:.1f}%. {'ATENÇÃO: abaixo do mínimo de 50% recomendado para planos BD.' if pct_ipca<50 else 'Adequada ao perfil BD.'}")
     pdf._img(ie,w=100);pdf._sec("GAPS DE LIQUIDEZ")
-    if anos:pdf._body(f"Anos com deficit: {', '.join(map(str,anos[:6]))}{'...' if len(anos)>6 else ''}. O fundo precisara usar o patrimônio acumulado para honrar beneficios.")
-    else:pdf._body("Nenhum deficit de liquidez relevante no horizonte analisado.")
+    if anos:pdf._body(f"Anos com déficit: {', '.join(map(str,anos[:6]))}{'...' if len(anos)>6 else ''}. O fundo precisará usar o patrimônio acumulado para honrar benefícios.")
+    else:pdf._body("Nenhum déficit de liquidez relevante no horizonte analisado.")
     pdf._img(ig,w=174,h=65)
     # PAG 4
     pdf.add_page();pdf._sec("CENÁRIOS DE STRESS")
-    pdf._body("Impacto estimado nos ativos e VP passivo para cada cenario macro.")
-    hd=["Cenario","Choque Juros","D Ativos(M)","D VP Pass.(M)","Gap Dur."]
+    pdf._body("Impacto estimado nos ativos e VP Passivo para cada cenário macro.")
+    hd=["Cenário","Choque Juros","Δ Ativos (M)","Δ VP Pass. (M)","Gap Dur."]
     rows=[]
     for _,r in df_stress.iterrows():
-        nm_c=r.get("Cenario",r.get("Cenário",""))
+        nm_c=r.get("Cenário",r.get("Cenário",""))
         rows.append([str(nm_c)[:20],f"{r.get('Choque Juros (bps)',0):+.0f}bps",
                      f"{r.get('Delta Ativos (R$ M)',r.get('Δ Ativos (R$ M)',0)):+.1f}",
                      f"{r.get('Delta VP Passivo (R$ M)',r.get('Δ VP Passivo (R$ M)',0)):+.1f}",
@@ -210,7 +210,7 @@ def gerar_pdf(info,params,metricas,df_ativos,df_passivo,df_exp,df_gaps,df_stress
     h2=["Ativo","Tipo","Indexador","Duration","Valor(R$M)","% Cart."]
     r2=[[r["ativo"][:24],r["tipo"][:8],r["indexador"],f"{r['duration']:.2f}a",f"R${r['valor_mercado']/1e6:.1f}M",f"{r['pct_carteira']:.1f}%"] for _,r in df_ativos.iterrows()]
     pdf._tbl(h2,r2,[56,18,22,22,32,24])
-    # CONCLUSAO EXECUTIVA — sem memoria de calculo (Excel separado)
+    # CONCLUSÃO EXECUTIVA — sem memória de cálculo (Excel separado)
     pdf.ln(4)
     pdf._sec("CONCLUSÃO E RECOMENDAÇÕES",color=TEAL)
     linhas=[l for l in relatorio_texto.split("\n") if l.strip()
@@ -218,9 +218,9 @@ def gerar_pdf(info,params,metricas,df_ativos,df_passivo,df_exp,df_gaps,df_stress
             and not l.startswith("---") and l.strip()!="---"]
     pdf._body("\n".join(linhas[:20]),sz=9)
     pdf.ln(3)
-    nota = ("Relatorio gerado em " + date.today().strftime("%d/%m/%Y") +
+    nota = ("Relatório gerado em " + date.today().strftime("%d/%m/%Y") +
             " pela Plataforma ALM Inteligente - Investtools."
-            " A memoria de calculo completa esta disponivel no Excel exportado pelo sistema."
+            " A memória de cálculo completa está disponível no Excel exportado pelo sistema."
             " Este relatório não substitui a avaliação do atuário responsável.")
     pdf.multi_cell(0, 5, s(nota))
     pdf.set_text_color(0, 0, 0)
