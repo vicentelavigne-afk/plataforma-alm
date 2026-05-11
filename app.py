@@ -1298,9 +1298,9 @@ with tab7:
         "PMBC": "R$ " + str(round(reservas["pmbc"] / 1e6, 1)) + "M",
         "PMBaC": "R$ " + str(round(reservas["pmbac"] / 1e6, 1)) + "M",
         "CFM Score": str(round(cfm_score, 1)) + "%" if cfm_score else "N/D",
-        "Metodo Duration Ativos": "Macaulay ponderado (PZ_DURATION do XML)",
-        "Metodo Duration Passivo": "VP ponderado do fluxo atuarial liquido",
-        "Metodo Reservas": "Tabua " + params.get("tabua_mortalidade", "AT-2000") + " - aproximacao",
+        "Método Duration Ativos": "Macaulay ponderado (PZ_DURATION do XML)",
+        "Método Duration Passivo": "VP ponderado pelo fluxo atuarial líquido",
+        "Método Reservas": "Tábua " + params.get("tabua_mortalidade", "AT-2000") + " - aproximação",
     }
 
     output = io.BytesIO()
@@ -1317,7 +1317,7 @@ with tab7:
         if not otimizacao["sugestoes"].empty: otimizacao["sugestoes"].to_excel(writer, sheet_name="Otimizacao", index=False)
         pd.DataFrame(list(premissas.items()), columns=["Parametro", "Valor"]).to_excel(writer, sheet_name="Premissas", index=False)
     output.seek(0)
-    st.download_button("Baixar Memoria de Calculo (Excel)", data=output.getvalue(),
+    st.download_button("Baixar Memória de Cálculo (Excel)", data=output.getvalue(),
         file_name="memoria_calculo_alm_" + info.get("data_base", "") + ".xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         use_container_width=False)
@@ -1330,23 +1330,23 @@ with tab8:
 
 # -- TAB 9 - HISTORICO -------------------------------------------------------
 with tab9:
-    st.markdown("#### Historico de Simulacoes")
-    st.caption("Simulacoes salvas localmente. Use o botao na sidebar para salvar a simulacao atual.")
+    st.markdown("#### Histórico de Simulações")
+    st.caption("Simulações salvas localmente. Use o botão na sidebar para salvar a simulação atual.")
     sims = listar_simulacoes(50)
     if not sims:
-        st.info("Nenhuma simulacao salva ainda. Processe um fundo e clique em Salvar na sidebar.")
+        st.info("Nenhuma simulação salva ainda. Processe um fundo e clique em Salvar na sidebar.")
     else:
         df_hist = pd.DataFrame(sims)
         df_hist_show = df_hist[["id","data_hora","nm_fundo","nome_plano","data_base","taxa_atuarial","ic","gap_duration","cfm_score","observacao"]].copy()
-        df_hist_show.columns = ["#","Data/Hora","Fundo","Plano","Data-base","Taxa (%)","IC","Gap Dur.","CFM %","Observacao"]
+        df_hist_show.columns = ["#","Data/Hora","Fundo","Plano","Data-base","Taxa (%)","IC","Gap Dur.","CFM %","Observação"]
         df_hist_show["IC"] = df_hist_show["IC"].apply(lambda x: str(round(x*100,1))+"%"if x else "-")
         df_hist_show["Gap Dur."] = df_hist_show["Gap Dur."].apply(lambda x: str(round(x,2))+"a" if x else "-")
         df_hist_show["CFM %"] = df_hist_show["CFM %"].apply(lambda x: str(round(x,1))+"%" if x else "-")
         st.dataframe(df_hist_show, use_container_width=True, hide_index=True)
         if len(sims) >= 2:
-            st.markdown("#### Comparar Simulacoes")
+            st.markdown("#### Comparar Simulações")
             opcoes = {"#"+str(s["id"])+" - "+s["data_hora"]+" | "+s["nm_fundo"]: s["id"] for s in sims}
-            sel = st.multiselect("Selecione 2 a 4 simulacoes para comparar:", list(opcoes.keys()), max_selections=4)
+            sel = st.multiselect("Selecione 2 a 4 simulações para comparar:", list(opcoes.keys()), max_selections=4)
             if len(sel) >= 2:
                 ids_sel = [opcoes[k] for k in sel]
                 df_c = df_hist[df_hist["id"].isin(ids_sel)][["id","data_hora","data_base","taxa_atuarial","total_ativos","vp_passivo","ic","gap_duration","pct_ipca","cfm_score"]]
