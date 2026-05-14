@@ -18,9 +18,9 @@ from chat_alm import render_chat_tab
 from ivt_theme import (
     injetar_css_global, IVT, IVT_COLORS, IVT_RED, IVT_GREEN,
     IVT_NAVY, IVT_TEAL, IVT_ORANGE,
-    page_header, section_header, fund_pill,
+    page_header, section_header, fund_pill, surface,
     metric_html, alert_html, badge,
-    brand_logo_block, sidebar_user_card, footer_html,
+    sidebar_brand, sidebar_user_card, footer_html,
     plotly_layout, fmt_m, ic_status,
 )
 from validacao import (
@@ -60,43 +60,67 @@ if "usuario_logado" not in st.session_state:
 
 if st.session_state.usuario_logado is None:
     injetar_css_global(st)
+    # Login page — espelha ivt-comercial/lib/loginPage.js: card centrado em soft bg
     st.markdown("""
     <style>
-      [data-testid="stMain"] .block-container { padding-top: 4rem; }
+      .stApp, [data-testid="stAppViewContainer"] { background: var(--soft) !important; }
+      [data-testid="stMain"] .block-container {
+          background: transparent !important;
+          border: 0 !important;
+          box-shadow: none !important;
+          padding-top: 5rem !important;
+          margin-top: 0 !important;
+      }
+      section[data-testid="stSidebar"] { display: none !important; }
+      .ivt-login-shell { display: flex; align-items: center; justify-content: center; }
       .ivt-login-card {
-          max-width: 420px;
-          margin: 0 auto;
+          width: 100%;
+          max-width: 440px;
           background: var(--background);
           border: 1px solid var(--border);
           border-radius: var(--radius-lg);
-          padding: 2rem 2rem 1.6rem;
+          padding: 36px 36px 28px;
           box-shadow: var(--shadow-md);
       }
-      .ivt-login-card .ivt-login-brand {
-          text-align: center;
-          margin-bottom: 1.4rem;
+      .ivt-login-brand {
+          display: flex; align-items: center; gap: 12px;
+          margin-bottom: 28px; padding-bottom: 20px;
+          border-bottom: 1px solid var(--border);
       }
-      .ivt-login-card .ivt-login-brand .brand-name {
-          font-size: 1.5rem; font-weight: 800; color: var(--primary);
-          letter-spacing: -0.02em; font-family: var(--font-lato);
+      .ivt-login-brand .ivt-brand-mark-lg {
+          width: 44px; height: 44px;
+          border-radius: var(--radius-md);
+          background: var(--primary);
+          color: var(--primary-foreground);
+          display: grid; place-items: center;
+          font-size: 18px; font-weight: 800;
+          box-shadow: var(--shadow-sm);
+          flex: none;
       }
-      .ivt-login-card .ivt-login-brand .brand-name span { color: var(--content-high); }
-      .ivt-login-card .ivt-login-brand .brand-sub {
-          font-size: 0.7rem; color: var(--muted-foreground);
-          letter-spacing: 0.14em; margin-top: 0.35rem;
-          text-transform: uppercase; font-weight: 600;
+      .ivt-login-brand .brand-text { display: flex; flex-direction: column; gap: 2px; }
+      .ivt-login-brand .brand-name {
+          font-size: 16px; font-weight: 700; color: var(--content-high);
+          letter-spacing: -0.01em; line-height: 1.1;
+      }
+      .ivt-login-brand .brand-sub {
+          font-size: 10.5px; color: var(--muted-foreground);
+          letter-spacing: 0.12em; text-transform: uppercase; font-weight: 600;
+          line-height: 1.2;
       }
       .ivt-login-card h1 {
-          margin: 0 0 0.4rem; font-size: 1.1rem;
-          color: var(--content-high); font-weight: 700;
+          margin: 0 0 8px; font-size: 22px;
+          color: var(--content-high); font-weight: 600;
+          letter-spacing: -0.01em;
       }
       .ivt-login-card p.lead {
-          margin: 0 0 1.2rem; font-size: 0.85rem;
+          margin: 0 0 24px; font-size: 13px;
           color: var(--muted-foreground); line-height: 1.5;
       }
       .ivt-login-foot {
-          text-align: center; font-size: 0.74rem;
-          color: var(--muted-foreground); margin-top: 1rem;
+          text-align: center; font-size: 11.5px;
+          color: var(--muted-foreground); margin-top: 22px;
+          padding-top: 16px; border-top: 1px solid var(--border);
+          letter-spacing: 0.02em;
       }
     </style>
     """, unsafe_allow_html=True)
@@ -105,11 +129,14 @@ if st.session_state.usuario_logado is None:
         st.markdown("""
         <div class="ivt-login-card">
           <div class="ivt-login-brand">
-            <div class="brand-name">invest<span>tools</span></div>
-            <div class="brand-sub">Plataforma ALM Inteligente</div>
+            <div class="ivt-brand-mark-lg">A</div>
+            <div class="brand-text">
+              <div class="brand-name">Plataforma ALM</div>
+              <div class="brand-sub">Investtools</div>
+            </div>
           </div>
-          <h1>Acesso à plataforma</h1>
-          <p class="lead">Informe seu e-mail e senha de gestor. Em caso de dúvida, solicite credenciais à Investtools.</p>
+          <h1>Acessar a plataforma</h1>
+          <p class="lead">Informe suas credenciais de gestor. Caso ainda não tenha acesso, solicite à equipe Investtools.</p>
         </div>
         """, unsafe_allow_html=True)
         _login_in = st.text_input("E-mail", placeholder="seu@email.com.br", key="login_in")
@@ -135,9 +162,10 @@ injetar_css_global(st)
 
 # -- Sidebar -------------------------------------------------------------------
 with st.sidebar:
-    st.markdown(brand_logo_block("Plataforma ALM Inteligente"), unsafe_allow_html=True)
-    st.markdown('<hr style="border-color:var(--border);margin:0.4rem 0;">', unsafe_allow_html=True)
-
+    st.markdown(
+        sidebar_brand("Plataforma ALM", "Investtools", mark="A"),
+        unsafe_allow_html=True,
+    )
     st.markdown(
         sidebar_user_card(_user['nome'], _user.get('fundo', '')),
         unsafe_allow_html=True,
