@@ -85,9 +85,13 @@ IVT_ORANGE = IVT.WARNING
 # ─────────────────────────────────────────────────────────────────────────────
 _CSS = r"""
 /* ────────────────────────────────────────────────────────────────────────
-   Lato — carregada eager para evitar FOUT na primeira renderização
+   Fontes — Lato (UI) + Material Symbols Rounded (icones lucide-like)
+   `display=block` para evitar FOIT/FOUT vazando nome do glifo (ex: o nome
+   "space_dashboard" rendererizando como texto se a fonte n vier).
    ────────────────────────────────────────────────────────────────────── */
 @import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;500;600;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..24,400,0..1,0&display=block');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..24,400,0..1,0&display=block');
 
 /* ────────────────────────────────────────────────────────────────────────
    Tokens — copy 1:1 de ivt-comercial/lib/layout.js LAYOUT_CSS_VARS
@@ -144,14 +148,50 @@ _CSS = r"""
 }
 
 /* ────────────────────────────────────────────────────────────────────────
-   Base — força Lato em tudo, body --body cinza, .stApp transparente
+   Base — Lato em UI textual, mas NUNCA sobrescreve fonte de icones
+   (Material Symbols precisa da propria font-family para os ligature
+   converterem "space_dashboard" no glifo correto).
    ────────────────────────────────────────────────────────────────────── */
-html, body, .stApp, [class*="st-"], [data-testid="stMarkdownContainer"],
-[data-testid="stAppViewContainer"], section[data-testid="stSidebar"],
-[data-baseweb], [data-baseweb] * {
+html, body, .stApp, [data-testid="stAppViewContainer"],
+[data-testid="stMarkdownContainer"], section[data-testid="stSidebar"] {
+  font-family: var(--font-lato) !important;
+}
+.stApp p, .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6,
+.stApp label, .stApp button, .stApp input, .stApp textarea, .stApp select,
+.stApp a, .stApp li, .stApp td, .stApp th,
+[data-testid="stMarkdownContainer"] p {
   font-family: var(--font-lato) !important;
 }
 html, body { background: var(--body) !important; color: var(--foreground); }
+
+/* Material Symbols — preserva a fonte de icones com prioridade maxima.
+   Vem DEPOIS dos seletores Lato para vencer no cascade, e usa as classes
+   conhecidas do Streamlit (stIconMaterial) + classes oficiais Google. */
+[data-testid="stIconMaterial"],
+span.material-symbols-rounded,
+span.material-symbols-outlined,
+span.material-symbols-sharp,
+span.material-icons,
+[class*="material-symbols"],
+.material-icons,
+.material-symbols-rounded,
+.material-symbols-outlined {
+  font-family: 'Material Symbols Rounded', 'Material Symbols Outlined',
+               'Material Icons', sans-serif !important;
+  font-weight: normal !important;
+  font-style: normal !important;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
 .stApp { background: var(--body) !important; }
 [data-testid="stAppViewContainer"] { background: var(--body) !important; }
 [data-testid="stMain"] { background: transparent !important; }
