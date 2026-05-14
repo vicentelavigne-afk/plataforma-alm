@@ -354,19 +354,24 @@ def render_painel_status(st, val_xml, val_passivo, val_params, val_fluxo,
                           alertas_calc, funcionalidades):
     """Renderiza o painel de qualidade dos dados no Streamlit."""
 
+    # Dot SVG (8px) — substitui emojis por indicador clean estilo Lucide
+    def _dot(cor: str) -> str:
+        return (f'<span style="display:inline-block;width:8px;height:8px;border-radius:50%;'
+                f'background:{cor};vertical-align:middle;flex:none;"></span>')
+
     STATUS_CONFIG = {
-        "ok":          ("✅", "#16A34A", "#F0FDF4", "#BBF7D0"),
-        "alerta":      ("⚠️", "#EA580C", "#FFF7ED", "#FED7AA"),
-        "erro":        ("❌", "#DC2626", "#FEF2F2", "#FECACA"),
-        "opcional":    ("ℹ️", "#2563EB", "#EFF6FF", "#BFDBFE"),
-        "ok_est":      ("⚡", "#EA580C", "#FFF7ED", "#FED7AA"),
+        "ok":          (_dot("#16A34A"), "#16A34A", "#F0FDF4", "#BBF7D0"),
+        "alerta":      (_dot("#EA580C"), "#EA580C", "#FFF7ED", "#FED7AA"),
+        "erro":        (_dot("#DC2626"), "#DC2626", "#FEF2F2", "#FECACA"),
+        "opcional":    (_dot("#2563EB"), "#2563EB", "#EFF6FF", "#BFDBFE"),
+        "ok_est":      (_dot("#EA580C"), "#EA580C", "#FFF7ED", "#FED7AA"),
     }
 
     FUNC_CONFIG = {
-        "ok":           ("✅", "#16A34A"),
-        "estimativa":   ("⚡", "#EA580C"),
-        "parcial":      ("⚠️", "#EA580C"),
-        "indisponivel": ("❌", "#DC2626"),
+        "ok":           (_dot("#16A34A"), "#16A34A"),
+        "estimativa":   (_dot("#EA580C"), "#EA580C"),
+        "parcial":      (_dot("#EA580C"), "#EA580C"),
+        "indisponivel": (_dot("#DC2626"), "#DC2626"),
     }
 
     # Contar problemas
@@ -411,7 +416,7 @@ def render_painel_status(st, val_xml, val_passivo, val_params, val_fluxo,
         cols = st.columns(4)
         for i, (nome, val) in enumerate(arquivos):
             icon, cor, bg, border_color = STATUS_CONFIG.get(
-                val["status"], ("❓", "#888888", "#F4F4F5", "#CCCCCC"))
+                val["status"], (_dot("#888888"), "#888888", "#F4F4F5", "#CCCCCC"))
             label_txt = val.get('label', '—')
             resumo_txt = val.get('resumo', '—')
             with cols[i]:
@@ -430,9 +435,10 @@ def render_painel_status(st, val_xml, val_passivo, val_params, val_fluxo,
                                 overflow:hidden;text-overflow:ellipsis;">
                         {nome}
                     </div>
-                    <div style="font-size:0.92rem;margin-bottom:0.25rem;line-height:1.3;">{icon}
+                    <div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:0.3rem;line-height:1.3;">
+                        {icon}
                         <span style="font-size:0.72rem;font-weight:700;color:{cor};
-                              letter-spacing:0.04em;text-transform:uppercase;margin-left:0.15rem;">
+                              letter-spacing:0.05em;text-transform:uppercase;">
                             {val['status'].replace('_',' ')}
                         </span>
                     </div>
@@ -514,23 +520,30 @@ def render_painel_status(st, val_xml, val_passivo, val_params, val_fluxo,
                                                   (col_b, funcionalidades[metade:])]):
             with col:
                 for func in funcs_col:
-                    icon_f, cor_f = FUNC_CONFIG.get(func["status"], ("❓", "#888888"))
-                    motivo_html = (f'<div style="font-size:0.72rem;color:#71717A;margin-top:0.15rem;'
-                                   f'margin-left:1.35rem;line-height:1.35;">'
+                    icon_f, cor_f = FUNC_CONFIG.get(func["status"], (_dot("#888888"), "#888888"))
+                    motivo_html = (f'<div style="font-size:0.72rem;color:#71717A;margin-top:0.2rem;'
+                                   f'margin-left:1.05rem;line-height:1.35;">'
                                    f'{func["motivo"]}</div>') if func["motivo"] else ""
                     st.markdown(f"""
-                    <div style="padding:0.45rem 0.75rem;margin:0.2rem 0;
-                                border-radius:8px;background:#F8FAFC;
-                                border:1px solid #E4E4E7;border-left:3px solid {cor_f};">
-                        <span style="font-size:0.85rem;">{icon_f}</span>
-                        <span style="font-size:0.84rem;font-weight:600;color:#0F172A;
-                                     margin-left:0.35rem;">{func["nome"]}</span>
+                    <div style="padding:0.5rem 0.85rem;margin:0.25rem 0;
+                                border-radius:8px;background:#FFFFFF;
+                                border:1px solid #E4E4E7;border-left:3px solid {cor_f};
+                                box-shadow:0 1px 2px rgba(15, 23, 42, 0.04);">
+                        <div style="display:flex;align-items:center;gap:0.55rem;">
+                            {icon_f}
+                            <span style="font-size:0.84rem;font-weight:600;color:#0F172A;">
+                                {func["nome"]}
+                            </span>
+                        </div>
                         {motivo_html}
                     </div>""", unsafe_allow_html=True)
 
-        # Legenda
-        st.markdown("""
-        <div style="margin-top:0.9rem;font-size:0.74rem;color:#71717A;line-height:1.4;">
-            ✅ Disponível &nbsp;·&nbsp; ⚡ Atendido com estimativa &nbsp;·&nbsp;
-            ⚠️ Parcialmente disponível &nbsp;·&nbsp; ❌ Indisponível
+        # Legenda — pontos coloridos como na navegação Lucide-style
+        st.markdown(f"""
+        <div style="margin-top:0.9rem;font-size:0.74rem;color:#71717A;line-height:1.5;
+             display:flex;flex-wrap:wrap;gap:1rem;align-items:center;">
+            <span style="display:inline-flex;align-items:center;gap:0.4rem;">{_dot("#16A34A")} Disponível</span>
+            <span style="display:inline-flex;align-items:center;gap:0.4rem;">{_dot("#EA580C")} Atendido com estimativa</span>
+            <span style="display:inline-flex;align-items:center;gap:0.4rem;">{_dot("#EA580C")} Parcialmente disponível</span>
+            <span style="display:inline-flex;align-items:center;gap:0.4rem;">{_dot("#DC2626")} Indisponível</span>
         </div>""", unsafe_allow_html=True)

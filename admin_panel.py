@@ -7,7 +7,7 @@ from auth import (
     resetar_senha, excluir_usuario,
     total_usuarios, ADMIN_EMAIL
 )
-from ivt_theme import section_header
+from ivt_theme import section_header, badge
 
 
 def render_admin_panel(st):
@@ -84,14 +84,14 @@ def render_admin_panel(st):
 
         for u in usuarios:
             c1, c2, c3, c4, c5, c6, c7 = st.columns([2, 2.5, 1.5, 1.5, 1.2, 1.2, 1.2])
-            status_label = "🟢 Ativo" if u["ativo"] else "🔴 Inativo"
+            status_html = badge("Ativo", "ok") if u["ativo"] else badge("Inativo", "danger")
             ultimo = u["ultimo_acesso"] or "—"
 
             c1.write(u["nome"])
             c2.write(u["email"])
             c3.write(u["usuario"])
             c4.write(u["fundo"] or "—")
-            c5.write(status_label)
+            c5.markdown(status_html, unsafe_allow_html=True)
             c6.write(ultimo[:10] if len(ultimo) > 10 else ultimo)
 
             with c7:

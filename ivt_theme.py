@@ -560,6 +560,33 @@ p, span, div, label, li { color: var(--foreground); }
   background: var(--primary) !important;
   height: 2px !important;
 }
+/* Material Symbols dentro das tabs — espelha o icon() do ivt-comercial:
+   tamanho 18px, fill leve, peso 400 (linha), gap 8px do texto, cor herdada. */
+.stTabs [data-baseweb="tab"] [data-testid="stIconMaterial"],
+.stTabs [data-baseweb="tab"] span[class*="material-symbols"],
+.stTabs [data-baseweb="tab"] .material-symbols-rounded,
+.stTabs [data-baseweb="tab"] .material-symbols-outlined {
+  font-size: 18px !important;
+  font-weight: 400 !important;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24 !important;
+  margin-right: 6px !important;
+  vertical-align: -3px !important;
+  color: inherit !important;
+  line-height: 1 !important;
+}
+.stTabs [aria-selected="true"] [data-testid="stIconMaterial"],
+.stTabs [aria-selected="true"] span[class*="material-symbols"] {
+  font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24 !important;
+}
+.stTabs [data-baseweb="tab"] p {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  margin: 0 !important;
+  font-size: 13px !important;
+  font-weight: inherit !important;
+  color: inherit !important;
+}
 
 /* ────────────────────────────────────────────────────────────────────────
    DataFrame — limpa, alinhada

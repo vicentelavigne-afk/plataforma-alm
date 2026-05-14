@@ -47,7 +47,7 @@ from alm_calc import (
 # -- Configuração da página ----------------------------------------------------
 st.set_page_config(
     page_title="ALM Inteligente — Investtools",
-    page_icon="📊",
+    page_icon=":material/space_dashboard:",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -237,7 +237,7 @@ with st.sidebar:
                     "nome": nome_cen.strip(), "juros_bps": juros_bps,
                     "ipca_bps": ipca_bps, "cambio_pct": cambio_pct
                 })
-                st.success(f"✅ Cenário '{nome_cen}' salvo!")
+                st.success(f"Cenário '{nome_cen}' salvo.")
                 st.rerun()
             else:
                 st.warning("Digite um nome para o cenário.")
@@ -291,7 +291,7 @@ if "resultado" not in st.session_state:
 # -- Processamento -------------------------------------------------------------
 if processar:
     if not xml_file and not excel_fluxo:
-        st.warning("⚠️ Envie pelo menos o XML ANBIMA ou o Fluxo Atuarial para iniciar.")
+        st.warning("Envie pelo menos o XML ANBIMA ou o Fluxo Atuarial para iniciar.")
         st.stop()
 
     with st.spinner("Processando dados ALM..."):
@@ -307,13 +307,13 @@ if processar:
                 try:
                     info, df_ativos = parse_xml_anbima(xml_file)
                 except Exception as e:
-                    st.warning(f"⚠️ Erro ao ler XML: {e}")
+                    st.warning(f"Erro ao ler XML: {e}")
 
             if excel_fluxo:
                 try:
                     df_passivo = parse_fluxo_atuarial(excel_fluxo)
                 except Exception as e:
-                    st.warning(f"⚠️ Erro ao ler Fluxo Atuarial: {e}")
+                    st.warning(f"Erro ao ler Fluxo Atuarial: {e}")
 
             params = parse_parametros(excel_param) if excel_param else {}
             # Guardar taxa do arquivo antes de sobrescrever (referência permanente)
@@ -328,7 +328,7 @@ if processar:
                 try:
                     df_fluxo_ativos = parse_fluxo_futuro_ativos(excel_fluxo_ativos)
                 except Exception as e:
-                    st.warning(f"⚠️ Erro ao ler Fluxo Futuro dos Ativos: {e}")
+                    st.warning(f"Erro ao ler Fluxo Futuro dos Ativos: {e}")
 
             # -- Cálculos — apenas o que for possível -----------------------
             taxa         = params["taxa_atuarial"]
@@ -442,7 +442,7 @@ if processar:
                     "funcionalidades": funcionalidades,
                 },
             }
-            st.success("✅ ALM processado com sucesso!")
+            st.success("ALM processado com sucesso.")
         except Exception as e:
             import traceback
             st.error(f"Erro no processamento: {e}")
@@ -614,13 +614,21 @@ _components.html("""
 """, height=0)
 
 # -- Tabs ----------------------------------------------------------------------
+# Material Symbols (lucide-style) — equivalente ao icon() do ivt-comercial.
+# Streamlit suporta :material/icon_name: nativamente desde 1.31.
 _tab_labels = [
-    "📊 Dashboard", "📈 Solvência", "📉 Gaps Liquidez",
-    "⚖️ CFM & Otimização", "🏛️ Reservas", "⚡ Stress Test",
-    "📝 Relatório", "💬 Assistente IA", "📅 Histórico",
+    ":material/space_dashboard: Dashboard",
+    ":material/trending_up: Solvência",
+    ":material/water_drop: Gaps de Liquidez",
+    ":material/balance: CFM & Otimização",
+    ":material/account_balance: Reservas",
+    ":material/bolt: Stress Test",
+    ":material/description: Relatório",
+    ":material/smart_toy: Assistente IA",
+    ":material/history: Histórico",
 ]
 if _is_admin:
-    _tab_labels.append("🔐 Gestão de Acessos")
+    _tab_labels.append(":material/admin_panel_settings: Gestão de Acessos")
 _tabs = st.tabs(_tab_labels)
 tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = _tabs[:9]
 tab_admin = _tabs[9] if _is_admin else None
@@ -667,15 +675,15 @@ with tab1:
 
     # Alertas
     if abs(gap_dur) > lim_dur:
-        st.markdown(alert_html(f"⚠️ Gap de Duration ({gap_dur:+.2f} anos) excede o limite da PI (±{lim_dur:.1f} anos)", "danger"), unsafe_allow_html=True)
+        st.markdown(alert_html(f"Gap de Duration ({gap_dur:+.2f} anos) excede o limite da PI (±{lim_dur:.1f} anos).", "danger"), unsafe_allow_html=True)
     if ic_atual < 1.0:
-        st.markdown(alert_html(f"⚠️ Índice de Cobertura ({ic_atual:.1%}) abaixo de 100% — fundo em situação deficitária", "danger"), unsafe_allow_html=True)
+        st.markdown(alert_html(f"Índice de Cobertura ({ic_atual:.1%}) abaixo de 100% — fundo em situação deficitária.", "danger"), unsafe_allow_html=True)
     if pct_ipca < 45:
-        st.markdown(alert_html(f"⚠️ Exposição ao IPCA ({pct_ipca:.1f}%) abaixo do mínimo recomendado (50%)", "warning"), unsafe_allow_html=True)
+        st.markdown(alert_html(f"Exposição ao IPCA ({pct_ipca:.1f}%) abaixo do mínimo recomendado (50%).", "warning"), unsafe_allow_html=True)
     if anos_deficit:
-        st.markdown(alert_html(f"⚠️ Déficit de liquidez em {n_deficit} anos — primeiro déficit em {anos_deficit[0]}", "warning"), unsafe_allow_html=True)
+        st.markdown(alert_html(f"Déficit de liquidez em {n_deficit} anos — primeiro déficit em {anos_deficit[0]}.", "warning"), unsafe_allow_html=True)
     if cfm_score and cfm_score < 50:
-        st.markdown(alert_html(f"⚠️ Score CFM baixo ({cfm_score:.1f}%) — fluxos dos ativos não cobrem adequadamente o passivo", "warning"), unsafe_allow_html=True)
+        st.markdown(alert_html(f"Score CFM baixo ({cfm_score:.1f}%) — fluxos dos ativos não cobrem adequadamente o passivo.", "warning"), unsafe_allow_html=True)
 
     st.markdown("")
     col_l, col_r = st.columns(2)
@@ -717,7 +725,7 @@ with tab1:
         fig_dur.update_layout(barmode="group", margin=dict(l=20, r=20, t=40, b=20))
         st.plotly_chart(fig_dur, use_container_width=True)
 
-    st.markdown("#### 📋 Carteira de Ativos")
+    st.markdown(section_header("Carteira de Ativos"), unsafe_allow_html=True)
     df_show = df_ativos[["ativo","tipo","indexador","taxa_juros","vencimento",
                            "duration","valor_mercado","pct_carteira","rating"]].copy()
     df_show.columns = ["Ativo","Tipo","Indexador","Taxa (%)","Vencimento",
@@ -818,7 +826,7 @@ with tab2:
         st.plotly_chart(fig_st, use_container_width=True)
 
     # Tabela resumida
-    with st.expander("📋 Tabela de Solvência Projetada"):
+    with st.expander("Tabela de Solvência Projetada"):
         df_t = df_solv[["ano","ic_pct","pl_projetado","vp_passivo_proj","status"]].copy()
         df_t.columns = ["Ano","IC (%)","PL Projetado (R$)","VP Passivo (R$)","Status"]
         df_t["IC (%)"] = df_t["IC (%)"].apply(lambda x: f"{x:.1f}%")
@@ -907,7 +915,7 @@ with tab4:
                     unsafe_allow_html=True)
         if not cfm["disponivel"]:
             st.markdown(alert_html(
-                "📁 Envie o arquivo de Fluxo Futuro dos Ativos (arquivo 4) para habilitar o CFM.",
+                "Envie o arquivo de Fluxo Futuro dos Ativos (arquivo 4) para habilitar o CFM.",
                 "info"), unsafe_allow_html=True)
         else:
             score = cfm["score_cfm"]
@@ -1226,12 +1234,12 @@ with tab7:
                 info, params, metricas, df_ativos, df_passivo,
                 df_exp, df_gaps, df_stress, relatorio
             )
-            st.download_button("⬇ Baixar PDF", data=pdf_bytes,
+            st.download_button("Baixar PDF", data=pdf_bytes,
                 file_name=f"relatorio_alm_{info.get('data_base','')}.pdf",
                 mime="application/pdf", use_container_width=True)
         except Exception as _pdf_err:
             st.warning(f"PDF indisponível ({_pdf_err}). Baixando versão texto.")
-            st.download_button("⬇ Baixar .txt", data=relatorio.encode("utf-8"),
+            st.download_button("Baixar .txt", data=relatorio.encode("utf-8"),
                 file_name=f"relatorio_alm_{info.get('data_base','')}.txt",
                 mime="text/plain")
 
