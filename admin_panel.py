@@ -7,20 +7,19 @@ from auth import (
     resetar_senha, excluir_usuario,
     total_usuarios, ADMIN_EMAIL
 )
+from ivt_theme import section_header
 
 
 def render_admin_panel(st):
     """Renderiza o painel completo de gestao de acessos."""
 
-    st.markdown("""
-    <div style="background:linear-gradient(135deg,#1E3A5F,#3B8091);padding:1rem 1.5rem;
-                border-radius:8px;margin-bottom:1.5rem;">
-        <h3 style="color:white;margin:0;font-size:1.1rem;">🔐 Gestão de Acessos — Painel Administrativo</h3>
-        <p style="color:#ECFEFF;margin:0.3rem 0 0;font-size:0.85rem;opacity:0.9;">
-            Cadastre, ative e desative logins de clientes para testes da plataforma.
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(
+        section_header(
+            "Gestão de Acessos — Painel Administrativo",
+            "Cadastre, ative e desative logins de clientes para testes da plataforma.",
+        ),
+        unsafe_allow_html=True,
+    )
 
     usuarios = listar_usuarios()
     ativos   = sum(1 for u in usuarios if u["ativo"])
@@ -38,7 +37,7 @@ def render_admin_panel(st):
     st.markdown("---")
 
     # ── Cadastrar novo usuário ─────────────────────────────────────────────────
-    st.markdown("#### ➕ Cadastrar Novo Cliente")
+    st.markdown("#### Cadastrar Novo Cliente")
     with st.form("form_novo_usuario", clear_on_submit=True):
         col1, col2 = st.columns(2)
         with col1:
@@ -50,7 +49,7 @@ def render_admin_panel(st):
                                          placeholder="Mínimo 6 caracteres")
             nova_senha2 = st.text_input("Confirmar senha *", type="password")
 
-        submitted = st.form_submit_button("💾 Criar Acesso", use_container_width=True)
+        submitted = st.form_submit_button("Criar Acesso", use_container_width=True)
         if submitted:
             if nova_senha != nova_senha2:
                 st.error("As senhas não coincidem.")
@@ -62,15 +61,15 @@ def render_admin_panel(st):
                 ok, msg = criar_usuario(novo_nome, novo_email, usuario_auto,
                                         nova_senha, novo_fundo)
                 if ok:
-                    st.success(f"✅ {msg}")
+                    st.success(msg)
                     st.rerun()
                 else:
-                    st.error(f"❌ {msg}")
+                    st.error(msg)
 
     st.markdown("---")
 
     # ── Lista de usuários ──────────────────────────────────────────────────────
-    st.markdown("#### 👥 Clientes Cadastrados")
+    st.markdown("#### Clientes Cadastrados")
 
     if not usuarios:
         st.info("Nenhum cliente cadastrado ainda. Use o formulário acima para adicionar.")
@@ -104,7 +103,7 @@ def render_admin_panel(st):
         st.markdown("")
 
         # Ações individuais em expander
-        with st.expander("⚙️ Ações avançadas (resetar senha / excluir)"):
+        with st.expander("Ações avançadas (resetar senha / excluir)"):
             opcoes = {f"#{u['id']} — {u['nome']} ({u['usuario']})": u["id"]
                       for u in usuarios}
             sel = st.selectbox("Selecionar usuário", list(opcoes.keys()),
@@ -115,7 +114,7 @@ def render_admin_panel(st):
             with col_r:
                 nova_pwd = st.text_input("Nova senha", type="password",
                                           key="nova_pwd_reset")
-                if st.button("🔑 Resetar senha", use_container_width=True,
+                if st.button("Resetar senha", use_container_width=True,
                               key="btn_reset"):
                     if nova_pwd and len(nova_pwd) >= 6:
                         resetar_senha(uid, nova_pwd)
@@ -126,7 +125,7 @@ def render_admin_panel(st):
             with col_d:
                 st.markdown("")
                 st.markdown("")
-                if st.button("🗑️ Excluir permanentemente", use_container_width=True,
+                if st.button("Excluir permanentemente", use_container_width=True,
                               key="btn_excluir", type="secondary"):
                     excluir_usuario(uid)
                     st.success("Usuário excluído.")

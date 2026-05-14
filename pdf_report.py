@@ -6,9 +6,11 @@ import matplotlib.patches as mpatches
 from fpdf import FPDF
 from datetime import date
 
-NAVY=(30,58,95);TEAL=(59,128,145);TEAL2=(42,157,144)
-ORANGE=(231,110,80);GRAY=(100,116,139);WHITE=(255,255,255)
-LIGHT=(241,245,249);RED=(220,38,38);GREEN=(22,163,74)
+# Paleta alinhada aos tokens do ivt-lib (globals.css):
+#   primary #3B8091 · content-high #0F172A · muted-foreground #71717A · body #F1F5F9
+NAVY=(15,23,42);    TEAL=(59,128,145);   TEAL2=(42,157,144)
+ORANGE=(231,110,80);GRAY=(113,113,122);  WHITE=(255,255,255)
+LIGHT=(241,245,249);RED=(220,38,38);     GREEN=(22,163,74)
 
 def rgb(t):return t[0],t[1],t[2]
 def s(text):
@@ -35,13 +37,13 @@ def _chart_gaps(df_gaps,anos_max=20):
     fig,ax=plt.subplots(figsize=(10,4));fig.patch.set_facecolor("white");ax.set_facecolor("white")
     cores=[("#DC2626" if d else "#3B8091") for d in df["deficit"]]
     ax.bar(df["ano"],df["fluxo_passivo"]/1e6,color=cores,alpha=0.85)
-    ax.plot(df["ano"],df["gap_acumulado"]/1e6,color="#1E3A5F",linewidth=2,linestyle="--",marker="o",markersize=3)
+    ax.plot(df["ano"],df["gap_acumulado"]/1e6,color="#0F172A",linewidth=2,linestyle="--",marker="o",markersize=3)
     ax.axhline(0,color="#94A3B8",linewidth=0.8)
     ax.set_xlabel("Ano",fontsize=9);ax.set_ylabel("R$ M",fontsize=9);ax.tick_params(labelsize=8)
     for sp in ax.spines.values():sp.set_color("#E4E4E7")
     p1=mpatches.Patch(color="#3B8091",label="Superavit")
     p2=mpatches.Patch(color="#DC2626",label="Deficit")
-    p3=plt.Line2D([0],[0],color="#1E3A5F",linewidth=2,linestyle="--",label="Gap Acumulado")
+    p3=plt.Line2D([0],[0],color="#0F172A",linewidth=2,linestyle="--",label="Gap Acumulado")
     ax.legend(handles=[p1,p2,p3],fontsize=8,framealpha=0.9)
     plt.tight_layout();buf=io.BytesIO();fig.savefig(buf,format="png",dpi=130,bbox_inches="tight");plt.close(fig);buf.seek(0);return buf.read()
 
@@ -72,7 +74,7 @@ def _chart_indexadores(df_exp):
 
 def _chart_duration(dur_a,dur_p,lim):
     fig,ax=plt.subplots(figsize=(5,3.5));fig.patch.set_facecolor("white");ax.set_facecolor("white")
-    bars=ax.bar(["Duration Ativos","Duration Passivo"],[dur_a,dur_p],color=["#3B8091","#1E3A5F"],width=0.45,alpha=0.9)
+    bars=ax.bar(["Duration Ativos","Duration Passivo"],[dur_a,dur_p],color=["#3B8091","#0F172A"],width=0.45,alpha=0.9)
     for bar,val in zip(bars,[dur_a,dur_p]):
         ax.text(bar.get_x()+bar.get_width()/2,bar.get_height()+0.15,f"{val:.2f}a",ha="center",va="bottom",fontsize=9)
     ax.axhline(dur_p+lim,color="#DC2626",linewidth=1.2,linestyle="--",label=f"Limite +{lim:.1f}a")

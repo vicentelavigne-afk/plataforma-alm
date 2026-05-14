@@ -378,24 +378,29 @@ def render_painel_status(st, val_xml, val_passivo, val_params, val_fluxo,
 
     # Barra de status geral
     if n_erros > 0:
-        borda, bg_geral, texto_geral = "#DC2626", "#FEF2F2", f"❌ {n_erros} arquivo(s) com erro — funcionalidades afetadas"
+        borda, bg_geral, borda_geral, txt_cor = "#DC2626", "#FEF2F2", "#FECACA", "#991B1B"
+        texto_geral = f"{n_erros} arquivo(s) com erro — funcionalidades afetadas"
     elif n_alertas > 0:
-        borda, bg_geral, texto_geral = "#EA580C", "#FFF7ED", f"⚠️ {n_alertas} alerta(s) — verifique os dados antes de usar os resultados"
+        borda, bg_geral, borda_geral, txt_cor = "#EA580C", "#FFF7ED", "#FED7AA", "#9A3412"
+        texto_geral = f"{n_alertas} alerta(s) — verifique os dados antes de usar os resultados"
     else:
-        borda, bg_geral, texto_geral = "#16A34A", "#F0FDF4", "✅ Todos os dados carregados e validados"
+        borda, bg_geral, borda_geral, txt_cor = "#16A34A", "#F0FDF4", "#BBF7D0", "#166534"
+        texto_geral = "Todos os dados carregados e validados"
 
     st.markdown(f"""
-    <div style="border-left:4px solid {borda};background:{bg_geral};
-                padding:0.6rem 1rem;border-radius:6px;margin-bottom:1rem;
-                font-size:0.9rem;font-weight:600;color:{borda};">
+    <div style="border:1px solid {borda_geral};border-left:3px solid {borda};
+                background:{bg_geral};
+                padding:0.7rem 1rem;border-radius:8px;margin-bottom:1rem;
+                font-size:0.87rem;font-weight:600;color:{txt_cor};
+                box-shadow:0 1px 2px rgba(15, 23, 42, 0.04);">
         {texto_geral}
     </div>
     """, unsafe_allow_html=True)
 
-    with st.expander("📋 Painel de Qualidade dos Dados — clique para expandir", expanded=(n_erros > 0 or n_alertas > 2)):
+    with st.expander("Painel de Qualidade dos Dados — clique para expandir", expanded=(n_erros > 0 or n_alertas > 2)):
 
         # ── Seção 1: Status dos Arquivos ──────────────────────────────────────
-        st.markdown("#### 📁 Status dos Arquivos")
+        st.markdown("#### Status dos Arquivos")
         arquivos = [
             ("1. XML ANBIMA — Carteira",         val_xml),
             ("2. Fluxo Atuarial — Passivo",       val_passivo),
@@ -414,24 +419,26 @@ def render_painel_status(st, val_xml, val_passivo, val_params, val_fluxo,
                 label_show  = (label_txt[:52]  + "…") if len(label_txt)  > 52 else label_txt
                 resumo_show = (resumo_txt[:60] + "…") if len(resumo_txt) > 60 else resumo_txt
                 st.markdown(f"""
-                <div style="border:1px solid {border_color};background:{bg};
-                            border-radius:8px;padding:0.7rem;border-top:3px solid {cor};
+                <div style="border:1px solid #E4E4E7;background:#FFFFFF;
+                            border-radius:8px;padding:0.75rem 0.9rem;border-top:3px solid {cor};
                             height:128px;overflow:hidden;display:flex;flex-direction:column;
-                            justify-content:flex-start;box-sizing:border-box;">
-                    <div style="font-size:0.69rem;color:#71717A;font-weight:700;
-                                text-transform:uppercase;letter-spacing:0.04em;
-                                margin-bottom:0.3rem;line-height:1.2;white-space:nowrap;
+                            justify-content:flex-start;box-sizing:border-box;
+                            box-shadow:0 1px 2px rgba(15, 23, 42, 0.04);">
+                    <div style="font-size:0.66rem;color:#71717A;font-weight:600;
+                                text-transform:uppercase;letter-spacing:0.06em;
+                                margin-bottom:0.35rem;line-height:1.2;white-space:nowrap;
                                 overflow:hidden;text-overflow:ellipsis;">
                         {nome}
                     </div>
-                    <div style="font-size:0.92rem;margin-bottom:0.2rem;line-height:1.3;">{icon}
-                        <span style="font-size:0.77rem;font-weight:700;color:{cor};">
-                            {val['status'].upper().replace('_',' ')}
+                    <div style="font-size:0.92rem;margin-bottom:0.25rem;line-height:1.3;">{icon}
+                        <span style="font-size:0.72rem;font-weight:700;color:{cor};
+                              letter-spacing:0.04em;text-transform:uppercase;margin-left:0.15rem;">
+                            {val['status'].replace('_',' ')}
                         </span>
                     </div>
-                    <div style="font-size:0.75rem;color:#334155;line-height:1.3;
-                                overflow:hidden;">{label_show}</div>
-                    <div style="font-size:0.69rem;color:#71717A;margin-top:0.2rem;
+                    <div style="font-size:0.76rem;color:#334155;line-height:1.35;
+                                overflow:hidden;font-weight:500;">{label_show}</div>
+                    <div style="font-size:0.7rem;color:#71717A;margin-top:0.22rem;
                                 line-height:1.3;overflow:hidden;">{resumo_show}</div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -449,29 +456,30 @@ def render_painel_status(st, val_xml, val_passivo, val_params, val_fluxo,
             st.markdown("")
             for al in todos_alertas_arq:
                 st.markdown(f"""
-                <div style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:5px;
-                            padding:0.4rem 0.8rem;margin:0.2rem 0;font-size:0.82rem;color:#92400E;">
-                    ⚠️ {al}
+                <div style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:8px;
+                            padding:0.5rem 0.85rem;margin:0.25rem 0;font-size:0.82rem;color:#9A3412;
+                            font-weight:500;line-height:1.4;">
+                    {al}
                 </div>""", unsafe_allow_html=True)
 
         # Alertas detalhados por ativo (expansível)
         if todos_alertas_detalhe:
-            with st.expander(f"🔍 {len(todos_alertas_detalhe)} alerta(s) detalhado(s) por ativo"):
+            with st.expander(f"{len(todos_alertas_detalhe)} alerta(s) detalhado(s) por ativo"):
                 for al in todos_alertas_detalhe:
                     st.markdown(f"""
-                    <div style="background:#FFFBEB;border-left:2px solid #F59E0B;
-                                padding:0.3rem 0.6rem;margin:0.15rem 0;
-                                font-size:0.8rem;color:#78350F;border-radius:0 4px 4px 0;">
-                        🔸 {al}
+                    <div style="background:#FFFBEB;border-left:2px solid #EA580C;
+                                padding:0.35rem 0.65rem;margin:0.15rem 0;
+                                font-size:0.8rem;color:#78350F;border-radius:0 6px 6px 0;">
+                        {al}
                     </div>""", unsafe_allow_html=True)
 
         # Versão do XML detectada
         versao_xml = val_xml.get("versao", "")
         if versao_xml and versao_xml not in ("desconhecida", ""):
             st.markdown(f"""
-            <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:4px;
-                        padding:0.3rem 0.8rem;margin:0.3rem 0;font-size:0.8rem;color:#1D4ED8;">
-                ℹ️ Layout XML detectado: <strong>{versao_xml}</strong>
+            <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;
+                        padding:0.4rem 0.85rem;margin:0.35rem 0;font-size:0.8rem;color:#1E40AF;">
+                Layout XML detectado: <strong>{versao_xml}</strong>
                 {"(carteira / ISO-8859-1)" if versao_xml == "4.01" else
                  "(Document / ISO 20022 / UTF-8)" if versao_xml == "5.0" else
                  "(ARQUIVO / padrão legado)" if "2" in versao_xml else ""}
@@ -481,21 +489,23 @@ def render_painel_status(st, val_xml, val_passivo, val_params, val_fluxo,
 
         # ── Seção 2: Alertas dos Cálculos ─────────────────────────────────────
         if alertas_calc:
-            st.markdown("#### ⚡ Alertas dos Cálculos")
+            st.markdown("#### Alertas dos Cálculos")
             for tipo, msg in alertas_calc:
-                cor_a = "#DC2626" if tipo == "danger" else "#EA580C"
-                bg_a  = "#FEF2F2" if tipo == "danger" else "#FFF7ED"
-                icon_a = "❌" if tipo == "danger" else "⚠️"
+                if tipo == "danger":
+                    cor_a, bg_a, brd_a, txt_a = "#DC2626", "#FEF2F2", "#FECACA", "#991B1B"
+                else:
+                    cor_a, bg_a, brd_a, txt_a = "#EA580C", "#FFF7ED", "#FED7AA", "#9A3412"
                 st.markdown(f"""
-                <div style="background:{bg_a};border-left:3px solid {cor_a};
-                            padding:0.4rem 0.8rem;margin:0.2rem 0;
-                            border-radius:0 5px 5px 0;font-size:0.85rem;color:{cor_a};font-weight:600;">
-                    {icon_a} {msg}
+                <div style="background:{bg_a};border:1px solid {brd_a};border-left:3px solid {cor_a};
+                            padding:0.5rem 0.9rem;margin:0.25rem 0;
+                            border-radius:8px;font-size:0.85rem;color:{txt_a};font-weight:500;
+                            line-height:1.4;">
+                    {msg}
                 </div>""", unsafe_allow_html=True)
             st.markdown("---")
 
         # ── Seção 3: Disponibilidade das Funcionalidades ──────────────────────
-        st.markdown("#### 🎛️ Disponibilidade das Funcionalidades")
+        st.markdown("#### Disponibilidade das Funcionalidades")
 
         col_a, col_b = st.columns(2)
         metade = len(funcionalidades) // 2 + len(funcionalidades) % 2
@@ -505,21 +515,22 @@ def render_painel_status(st, val_xml, val_passivo, val_params, val_fluxo,
             with col:
                 for func in funcs_col:
                     icon_f, cor_f = FUNC_CONFIG.get(func["status"], ("❓", "#888888"))
-                    motivo_html = (f'<div style="font-size:0.72rem;color:#71717A;margin-top:0.1rem;">'
+                    motivo_html = (f'<div style="font-size:0.72rem;color:#71717A;margin-top:0.15rem;'
+                                   f'margin-left:1.35rem;line-height:1.35;">'
                                    f'{func["motivo"]}</div>') if func["motivo"] else ""
                     st.markdown(f"""
-                    <div style="padding:0.35rem 0.6rem;margin:0.15rem 0;
-                                border-radius:5px;background:#F8FAFC;
-                                border-left:3px solid {cor_f};">
+                    <div style="padding:0.45rem 0.75rem;margin:0.2rem 0;
+                                border-radius:8px;background:#F8FAFC;
+                                border:1px solid #E4E4E7;border-left:3px solid {cor_f};">
                         <span style="font-size:0.85rem;">{icon_f}</span>
-                        <span style="font-size:0.85rem;font-weight:600;color:#1E3A5F;
-                                     margin-left:0.3rem;">{func["nome"]}</span>
+                        <span style="font-size:0.84rem;font-weight:600;color:#0F172A;
+                                     margin-left:0.35rem;">{func["nome"]}</span>
                         {motivo_html}
                     </div>""", unsafe_allow_html=True)
 
         # Legenda
         st.markdown("""
-        <div style="margin-top:0.8rem;font-size:0.75rem;color:#71717A;">
+        <div style="margin-top:0.9rem;font-size:0.74rem;color:#71717A;line-height:1.4;">
             ✅ Disponível &nbsp;·&nbsp; ⚡ Atendido com estimativa &nbsp;·&nbsp;
             ⚠️ Parcialmente disponível &nbsp;·&nbsp; ❌ Indisponível
         </div>""", unsafe_allow_html=True)

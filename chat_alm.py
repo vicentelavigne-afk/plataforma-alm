@@ -256,15 +256,14 @@ def render_chat_tab(st, resultado: dict, api_key: str):
         return
 
     # Cabeçalho
-    st.markdown("""
-    <div style="background:linear-gradient(135deg,#1E3A5F,#3B8091);padding:1rem 1.5rem;
-                border-radius:8px;margin-bottom:1rem;">
-        <h3 style="color:white;margin:0;font-size:1.1rem;">Assistente ALM - Powered by GPT-4o</h3>
-        <p style="color:#ECFEFF;margin:0.3rem 0 0;font-size:0.85rem;opacity:0.9;">
-            Diagnostico automatico + perguntas livres sobre os dados reais do fundo.
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
+    from ivt_theme import section_header
+    st.markdown(
+        section_header(
+            "Assistente ALM — Powered by GPT-4o",
+            "Diagnóstico automático + perguntas livres sobre os dados reais do fundo.",
+        ),
+        unsafe_allow_html=True,
+    )
 
     # ── Diagnóstico Proativo ──────────────────────────────────────────────────
     st.markdown("#### Diagnóstico Automático")
